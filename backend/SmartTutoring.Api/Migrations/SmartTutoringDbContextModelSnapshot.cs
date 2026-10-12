@@ -22,6 +22,37 @@ namespace SmartTutoring.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Asistencia", b =>
+                {
+                    b.Property<int>("IdAsistencia")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdAsistencia"));
+
+                    b.Property<string>("EstadoAsistencia")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("IdSesion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("IdAsistencia");
+
+                    b.HasIndex("IdSesion")
+                        .IsUnique();
+
+                    b.ToTable("Asistencias", t =>
+                        {
+                            t.HasCheckConstraint("CK_Asistencias_EstadoValido", "\"EstadoAsistencia\" IN ('Presente', 'Ausente')");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Estudiante", b =>
                 {
                     b.Property<int>("IdEstudiante")
@@ -84,6 +115,35 @@ namespace SmartTutoring.Api.Migrations
                     b.HasKey("IdMateria");
 
                     b.ToTable("Materias");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
+                {
+                    b.Property<int>("IdSeguimiento")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdSeguimiento"));
+
+                    b.Property<int>("IdSesion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("TemaTrabajado")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("IdSeguimiento");
+
+                    b.HasIndex("IdSesion")
+                        .IsUnique();
+
+                    b.ToTable("SeguimientosAcademicos");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>
@@ -219,6 +279,28 @@ namespace SmartTutoring.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Asistencia", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.Asistencia", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sesion");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sesion");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>

@@ -17,6 +17,9 @@ public class SmartTutoringDbContext : DbContext
     public DbSet<Materia> Materias => Set<Materia>();
     public DbSet<TutorMateria> TutorMaterias => Set<TutorMateria>();
     public DbSet<SesionTutoria> SesionesTutoria => Set<SesionTutoria>();
+    public DbSet<Asistencia> Asistencias => Set<Asistencia>();
+    public DbSet<SeguimientoAcademico> SeguimientosAcademicos =>
+        Set<SeguimientoAcademico>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -84,7 +87,6 @@ public class SmartTutoringDbContext : DbContext
             .HasForeignKey(s => s.IdMateria)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // Índice utilizado para comprobar disponibilidad del tutor
         modelBuilder.Entity<SesionTutoria>()
             .HasIndex(s => new
             {
@@ -92,7 +94,6 @@ public class SmartTutoringDbContext : DbContext
                 s.Fecha
             });
 
-        // Restricciones de integridad de Sesiones
         modelBuilder.Entity<SesionTutoria>()
             .ToTable(table =>
             {
@@ -104,5 +105,35 @@ public class SmartTutoringDbContext : DbContext
                     "CK_SesionesTutoria_EstadoValido",
                     "\"Estado\" IN ('Programada', 'Completada', 'Cancelada')");
             });
+
+        // Asistencia
+        modelBuilder.Entity<Asistencia>()
+            .HasIndex(a => a.IdSesion)
+            .IsUnique();
+
+        modelBuilder.Entity<Asistencia>()
+            .HasOne(a => a.Sesion)
+            .WithOne()
+            .HasForeignKey<Asistencia>(a => a.IdSesion)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Asistencia>()
+            .ToTable(table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Asistencias_EstadoValido",
+                    "\"EstadoAsistencia\" IN ('Presente', 'Ausente')");
+            });
+
+        // Seguimiento académico
+        modelBuilder.Entity<SeguimientoAcademico>()
+            .HasIndex(s => s.IdSesion)
+            .IsUnique();
+
+        modelBuilder.Entity<SeguimientoAcademico>()
+            .HasOne(s => s.Sesion)
+            .WithOne()
+            .HasForeignKey<SeguimientoAcademico>(s => s.IdSesion)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
