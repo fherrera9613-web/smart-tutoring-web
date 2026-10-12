@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api, getSessionUser } from '../services/api.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -7,66 +8,58 @@ export default function Login({ onLogin }) {
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [done, setDone] = useState(false);
+  const [serverError, setServerError] = useState('');
 
-  const onChange = (e) => {
-    const { name, value } = e.target;
-    setForm((f) => ({ ...f, [name]: value }));
-    setErrors((er) => ({ ...er, [name]: undefined }));
-    setDone(false);
+  const onChange = (event) => {
+    const { name, value } = event.target;
+    setForm((current) => ({ ...current, [name]: value }));
+    setErrors((current) => ({ ...current, [name]: '' }));
+    setServerError('');
   };
 
-  const onSubmit = (e) => {
-    e.preventDefault();
-    const er = {};
-    if (!form.email.trim()) er.email = 'Ingresa tu correo institucional.';
-    else if (!EMAIL_RE.test(form.email.trim())) er.email = 'El correo no tiene un formato válido.';
-    if (!form.password) er.password = 'Ingresa tu contraseña.';
-    else if (form.password.length < 6) er.password = 'La contraseña debe tener al menos 6 caracteres.';
-    setErrors(er);
-    if (Object.keys(er).length) return;
+  const onSubmit = async (event) => {
+    event.preventDefault();
+    const nextErrors = {};
+    const email = form.email.trim();
+    if (!email) nextErrors.email = 'Ingresa tu correo.';
+    else if (!EMAIL_RE.test(email)) nextErrors.email = 'El correo no tiene un formato válido.';
+    if (!form.password) nextErrors.password = 'Ingresa tu contraseña.';
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length) return;
+
+    if (import.meta.env.DEV && email.toLowerCase() === 'admin@correo.com' && form.password === '1234') {
+      onLogin({
+        token: 'local-demo-session',
+        demo: true,
+        role: 'admin',
+        user: { nombre: 'Admin de prueba', correo: 'admin@correo.com', rol: 'admin' },
+      });
+      return;
+    }
 
     setLoading(true);
-    setTimeout(() => { setLoading(false); onLogin?.(); }, 450);
+    setServerError('');
+    try {
+      const response = await api.login(email, form.password);
+      onLogin(getSessionUser(response));
+    } catch (error) {
+      setServerError(error.message || 'No se pudo iniciar sesión.');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  return (
-    <>
-      <main className="login-wrap">
-        <form className="card login-card" onSubmit={onSubmit} noValidate>
-          <div className="brand-mark">S</div>
-          <p className="eyebrow-plain">SMART Tutoring Center</p>
-          <h1>Panel administrativo</h1>
-          <p className="lead">Inicia sesión para gestionar estudiantes, profesores, familias y tutorías.</p>
-
-          {done && <div className="alert alert-ok" role="status">Sesión iniciada.</div>}
-
-          <label className="field">
-            <span>Correo electrónico</span>
-            <input name="email" type="email" autoComplete="email" placeholder="nombre@uni.edu"
-              value={form.email} onChange={onChange} aria-invalid={!!errors.email} />
-            {errors.email && <em>{errors.email}</em>}
-          </label>
-
-          <label className="field">
-            <span>Contraseña</span>
-            <div className="password">
-              <input name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password"
-                value={form.password} onChange={onChange} aria-invalid={!!errors.password} />
-              <button type="button" className="link-btn" onClick={() => setShowPassword((s) => !s)}>
-                {showPassword ? 'Ocultar' : 'Mostrar'}
-              </button>
-            </div>
-            {errors.password && <em>{errors.password}</em>}
-          </label>
-
-          <div className="row-end"><a href="#" className="link-sm">¿Olvidaste tu contraseña?</a></div>
-
-          <button className="btn btn-primary" disabled={loading}>
-            {loading ? 'Ingresando…' : 'Iniciar sesión'}
-          </button>
-        </form>
-      </main>
-    </>
-  );
+  return <main className="login-wrap">
+    <form className="card login-card" onSubmit={onSubmit} noValidate>
+      <div className="brand-mark">S</div>
+      <p className="eyebrow-plain">SMART Tutoring Center</p>
+      <h1>Iniciar sesión</h1>
+      <p className="lead">Usa tu cuenta del sistema. El acceso y los permisos se validan en el servidor.</p>
+      {serverError && <div className="alert alert-error" role="alert">{serverError}</div>}
+      <label className="field"><span>Correo electrónico</span><input name="email" type="email" autoComplete="username" placeholder="nombre@correo.com" value={form.email} onChange={onChange} aria-invalid={!!errors.email}/>{errors.email && <em>{errors.email}</em>}</label>
+      <label className="field"><span>Contraseña</span><div className="password"><input name="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={form.password} onChange={onChange} aria-invalid={!!errors.password}/><button type="button" className="link-btn" onClick={() => setShowPassword((visible) => !visible)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button></div>{errors.password && <em>{errors.password}</em>}</label>
+      <button className="btn btn-primary" disabled={loading}>{loading ? 'Validando con el servidor…' : 'Iniciar sesión'}</button>
+      <p className="login-footnote">La autenticación requiere la API configurada.</p>
+    </form>
+  </main>;
 }
