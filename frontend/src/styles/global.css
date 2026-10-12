@@ -137,6 +137,65 @@ button, input { font: inherit; color: inherit; }
 @media (max-width: 760px) { .sidebar { position: fixed; left: 0; top: 0; transform: translateX(-100%); width: 255px; height: 100dvh; transition: transform .2s ease; box-shadow: 10px 0 30px rgba(21,44,66,.08); }.sidebar-open { transform: translateX(0); }.sidebar-backdrop { display: block; position: fixed; inset: 0; border: 0; background: rgba(19,39,53,.26); z-index: 4; }.mobile-close { display: block; margin-left: auto; border: 0; background: none; color: #718290; font-size: 22px; }.menu-toggle { display: block; border: 0; background: transparent; color: #4e6576; font-size: 17px; cursor: pointer; }.topbar { height: 56px; flex-basis: 56px; padding: 0 16px; gap: 12px; }.breadcrumb { margin-right: auto; }.today-label { display: none; }.topbar-right { gap: 12px; }.content-area { padding: 22px 16px 16px; }.page-title { align-items: flex-start; }.page-title h1 { font-size: 23px; }.page-description { max-width: 420px; line-height: 1.5; }.stat-grid { gap: 10px; }.stat-card { min-height: 140px; padding: 13px; }.overview-grid { grid-template-columns: 1fr; }.activity-panel { min-height: 290px; }.app-footer { padding: 10px 16px 14px; }.schedule-layout { grid-template-columns: 1fr; }.availability-panel { grid-row: 1; }.calendar-panel { padding-left: 12px; padding-right: 12px; }.calendar-grid { grid-template-columns: 42px repeat(7,minmax(78px,1fr)); }.calendar-panel { overflow-x: auto; }.calendar-toolbar { min-width: 600px; }.calendar-grid { min-width: 600px; }.calendar-legend { min-width: 600px; }.data-toolbar { align-items: flex-start; flex-direction: column; }.toolbar-actions { width: 100%; }.search-box { flex: 1; }.metric-strip { overflow-x: auto; }.metric-strip > div { min-width: 130px; padding: 2px 13px; }.finance-strip > div { min-width: 120px; }.table-footer { min-width: 520px; }.data-panel { overflow: hidden; }.data-panel .table-scroll { overflow-x: auto; } }
 @media (max-width: 480px) { .login-card { padding: 26px 22px; }.page-title { gap: 10px; flex-direction: column; }.page-title > .button { align-self: stretch; }.page-title h1 { font-size: 22px; }.stat-card > strong { font-size: 21px; }.stat-card > small { font-size: 8px; }.stat-grid { gap: 8px; }.week-panel,.activity-panel { padding: 14px; }.week-day { min-height: 79px; }.week-day > small { font-size: 7px; }.panel-heading h2 { font-size: 12px; }.app-footer > span:nth-child(2) { display: none; }.form-pair { gap: 8px; }.calendar-nav strong { font-size: 10px; }.calendar-nav { gap: 5px; }.calendar-toolbar { min-width: 540px; }.calendar-grid { min-width: 540px; grid-template-columns: 40px repeat(7,minmax(71px,1fr)); }.calendar-legend { min-width: 540px; gap: 10px; }.metric-strip > div { min-width: 115px; }.table-footer > div { gap: 2px; }.table-footer button { padding: 5px 6px; } }
 
+/* Legibilidad, estados de interacción y acento de navegación */
+.sidebar { background: #173b50; border-right-color: #214b60; color: #f4f8fa; }
+.side-brand strong { color: #fff; }
+.side-brand span:not(.brand-mark) { color: #b5cbd4; }
+.workspace-label { color: #9cb7c1; }
+.nav-item { color: #d2e0e5; }
+.nav-item:hover { background: #204a5d; color: #fff; }
+.nav-active, .nav-active:hover { background: #208b96; color: #fff; box-shadow: inset 3px 0 #f4c84e; }
+.nav-count { color: #fff1c8; background: #795f2d; }
+.help-card { background: #1d465a; border-color: #2a5265; }
+.help-card strong { color: #f5f8fa; }
+.help-card p { color: #bdd0d7; }
+.help-card button { color: #83d3d1; }
+.profile-row { border-top-color: #31566a; }
+.profile-row strong { color: #fff; }
+.profile-row small, .profile-dots { color: #b5cbd4; }
+
+.app-shell { font-size: 15px; }
+.nav-item { font-size: 14px; min-height: 42px; }
+.workspace-label { font-size: 11px; }
+.breadcrumb, .today-label { font-size: 13px; }
+.page-title h1 { font-size: 28px; }
+.page-description { font-size: 13px; }
+.eyebrow { font-size: 11px; }
+.button { font-size: 12px; min-height: 39px; }
+.stat-label { font-size: 12px; }
+.stat-card > small { font-size: 10px; }
+.panel-heading h2, .data-toolbar h2 { font-size: 14px; }
+.panel-heading p, .data-toolbar p { font-size: 11px; }
+.text-button { font-size: 11px; }
+.week-day > span, .week-day > small { font-size: 10px; }
+.upcoming-row b, .person-cell strong { font-size: 11px; }
+.upcoming-row small, .activity-item small { font-size: 10px; }
+.activity-item b { font-size: 11px; }
+th { font-size: 9px; }
+td { font-size: 11px; }
+.form-field > span { font-size: 11px; }
+.form-field select, .form-field input, .form-field textarea { font-size: 11px; min-height: 40px; }
+.status { font-size: 10px; }
+.search-box input { font-size: 11px; }
+.row-menu, .icon-button, .button, .nav-item, .week-day, .text-button, .available-teacher, .choice-button, .table-footer button, .activity-link, .top-avatar { transition: transform .16s ease, background-color .16s ease, color .16s ease, box-shadow .16s ease; }
+.button:hover:not(:disabled), .available-teacher:hover, .week-day:hover, .table-footer button:hover:not(:disabled) { transform: translateY(-1px); }
+.button:active:not(:disabled), .nav-item:active, .top-avatar:active { transform: scale(.98); }
+.nav-item:hover { transform: translateX(2px); }
+.field input, .form-field input, .form-field select, .form-field textarea, .search-box { transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease; }
+.field input:focus, .form-field input:focus, .form-field select:focus, .form-field textarea:focus, .search-box:focus-within { transform: scale(1.012); }
+.field input:focus, .form-field input:focus, .form-field select:focus, .form-field textarea:focus { box-shadow: 0 0 0 3px rgba(27,127,158,.16); }
+.activity-link:hover, .text-button:hover { color: #126e78; }
+
+@media (max-width: 760px) {
+  .page-title h1 { font-size: 25px; }
+  .app-shell { font-size: 14px; }
+}
+@media (max-width: 480px) {
+  .page-title h1 { font-size: 23px; }
+  .stat-label { font-size: 11px; }
+  .panel-heading h2, .data-toolbar h2 { font-size: 13px; }
+}
+
 @media (max-width: 480px) {
   .login-card { padding: 24px 20px; }
   .login-card h1 { font-size: 28px; }
