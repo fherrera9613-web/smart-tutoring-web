@@ -12,6 +12,7 @@ public class SmartTutoringDbContext : DbContext
     }
 
     public DbSet<Estudiante> Estudiantes => Set<Estudiante>();
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +20,10 @@ public class SmartTutoringDbContext : DbContext
 
         modelBuilder.Entity<Estudiante>()
             .HasIndex(e => e.Carnet)
+            .IsUnique();
+
+        modelBuilder.Entity<Usuario>()
+            .HasIndex(u => u.CorreoElectronico)
             .IsUnique();
     }
 }
