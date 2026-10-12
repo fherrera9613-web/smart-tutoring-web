@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export default function Login() {
+export default function Login({ onLogin }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -26,20 +26,20 @@ export default function Login() {
     setErrors(er);
     if (Object.keys(er).length) return;
 
-    // Solo frontend: aquí se llamará a la API cuando esté conectada.
     setLoading(true);
-    setTimeout(() => { setLoading(false); setDone(true); }, 700);
+    setTimeout(() => { setLoading(false); onLogin?.(); }, 450);
   };
 
   return (
     <>
       <main className="login-wrap">
         <form className="card login-card" onSubmit={onSubmit} noValidate>
-          <p className="eyebrow-plain">Módulo del Estudiante</p>
-          <h1>Iniciar sesión</h1>
-          <p className="lead">Accede para dar seguimiento a tu proyecto de graduación, gestionar tus documentos y revisar las observaciones de tu profesor.</p>
+          <div className="brand-mark">S</div>
+          <p className="eyebrow-plain">SMART Tutoring Center</p>
+          <h1>Panel administrativo</h1>
+          <p className="lead">Inicia sesión para gestionar estudiantes, profesores, familias y tutorías.</p>
 
-          {done && <div className="alert alert-ok" role="status">Datos válidos. El acceso se activará al conectar con el servidor.</div>}
+          {done && <div className="alert alert-ok" role="status">Sesión iniciada.</div>}
 
           <label className="field">
             <span>Correo electrónico</span>
