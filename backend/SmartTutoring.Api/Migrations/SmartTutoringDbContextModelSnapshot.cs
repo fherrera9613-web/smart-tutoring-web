@@ -86,6 +86,53 @@ namespace SmartTutoring.Api.Migrations
                     b.ToTable("Materias");
                 });
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>
+                {
+                    b.Property<int>("IdSesion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdSesion"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("HoraFin")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("IdEstudiante")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdMateria")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTutor")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IdSesion");
+
+                    b.HasIndex("IdEstudiante");
+
+                    b.HasIndex("IdMateria");
+
+                    b.HasIndex("IdTutor", "Fecha");
+
+                    b.ToTable("SesionesTutoria", t =>
+                        {
+                            t.HasCheckConstraint("CK_SesionesTutoria_EstadoValido", "\"Estado\" IN ('Programada', 'Completada', 'Cancelada')");
+
+                            t.HasCheckConstraint("CK_SesionesTutoria_HorarioValido", "\"HoraFin\" > \"HoraInicio\"");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Tutor", b =>
                 {
                     b.Property<int>("IdTutor")
@@ -172,6 +219,33 @@ namespace SmartTutoring.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Estudiante", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("IdEstudiante")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Materia", "Materia")
+                        .WithMany()
+                        .HasForeignKey("IdMateria")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
+                        .WithMany()
+                        .HasForeignKey("IdTutor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Estudiante");
+
+                    b.Navigation("Materia");
+
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Tutor", b =>
