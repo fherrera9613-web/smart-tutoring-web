@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartTutoring.Api.Data;
 using SmartTutoring.Api.Models.DTOs;
 using SmartTutoring.Api.Models.Entities;
 
 namespace SmartTutoring.Api.Controllers;
+
+[Authorize(Roles = "Administrador,PersonalAdministrativo")]
 
 [ApiController]
 [Route("api/[controller]")]
