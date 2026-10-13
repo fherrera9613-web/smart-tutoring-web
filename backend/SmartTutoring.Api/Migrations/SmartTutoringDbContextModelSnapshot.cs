@@ -22,6 +22,37 @@ namespace SmartTutoring.Api.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Asistencia", b =>
+                {
+                    b.Property<int>("IdAsistencia")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdAsistencia"));
+
+                    b.Property<string>("EstadoAsistencia")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("IdSesion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("IdAsistencia");
+
+                    b.HasIndex("IdSesion")
+                        .IsUnique();
+
+                    b.ToTable("Asistencias", t =>
+                        {
+                            t.HasCheckConstraint("CK_Asistencias_EstadoValido", "\"EstadoAsistencia\" IN ('Presente', 'Ausente')");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Estudiante", b =>
                 {
                     b.Property<int>("IdEstudiante")
@@ -60,6 +91,195 @@ namespace SmartTutoring.Api.Migrations
                     b.ToTable("Estudiantes");
                 });
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Materia", b =>
+                {
+                    b.Property<int>("IdMateria")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdMateria"));
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("Nivel")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("NombreMateria")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.HasKey("IdMateria");
+
+                    b.ToTable("Materias");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
+                {
+                    b.Property<int>("IdPago")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPago"));
+
+                    b.Property<string>("Concepto")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateOnly>("FechaPago")
+                        .HasColumnType("date");
+
+                    b.Property<int>("IdEstudiante")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("IdPago");
+
+                    b.HasIndex("IdEstudiante", "FechaPago");
+
+                    b.ToTable("Pagos", t =>
+                        {
+                            t.HasCheckConstraint("CK_Pagos_MontoPositivo", "\"Monto\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
+                {
+                    b.Property<int>("IdSeguimiento")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdSeguimiento"));
+
+                    b.Property<int>("IdSesion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Observaciones")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("TemaTrabajado")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("IdSeguimiento");
+
+                    b.HasIndex("IdSesion")
+                        .IsUnique();
+
+                    b.ToTable("SeguimientosAcademicos");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>
+                {
+                    b.Property<int>("IdSesion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdSesion"));
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("Fecha")
+                        .HasColumnType("date");
+
+                    b.Property<TimeOnly>("HoraFin")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<TimeOnly>("HoraInicio")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("IdEstudiante")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdMateria")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdTutor")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IdSesion");
+
+                    b.HasIndex("IdEstudiante");
+
+                    b.HasIndex("IdMateria");
+
+                    b.HasIndex("IdTutor", "Fecha");
+
+                    b.ToTable("SesionesTutoria", t =>
+                        {
+                            t.HasCheckConstraint("CK_SesionesTutoria_EstadoValido", "\"Estado\" IN ('Programada', 'Completada', 'Cancelada')");
+
+                            t.HasCheckConstraint("CK_SesionesTutoria_HorarioValido", "\"HoraFin\" > \"HoraInicio\"");
+                        });
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Tutor", b =>
+                {
+                    b.Property<int>("IdTutor")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdTutor"));
+
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Especialidad")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<int?>("Experiencia")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdUsuario")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("IdTutor");
+
+                    b.HasIndex("IdUsuario")
+                        .IsUnique();
+
+                    b.ToTable("Tutores");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.TutorMateria", b =>
+                {
+                    b.Property<int>("IdTutor")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IdMateria")
+                        .HasColumnType("integer");
+
+                    b.HasKey("IdTutor", "IdMateria");
+
+                    b.HasIndex("IdMateria");
+
+                    b.ToTable("TutorMaterias");
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Usuario", b =>
                 {
                     b.Property<int>("IdUsuario")
@@ -95,6 +315,106 @@ namespace SmartTutoring.Api.Migrations
                         .IsUnique();
 
                     b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Asistencia", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.Asistencia", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sesion");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Estudiante", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("IdEstudiante")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Estudiante");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Sesion");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SesionTutoria", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Estudiante", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("IdEstudiante")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Materia", "Materia")
+                        .WithMany()
+                        .HasForeignKey("IdMateria")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
+                        .WithMany()
+                        .HasForeignKey("IdTutor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Estudiante");
+
+                    b.Navigation("Materia");
+
+                    b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Tutor", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Usuario", "Usuario")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.Tutor", "IdUsuario")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.TutorMateria", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Materia", "Materia")
+                        .WithMany("TutorMaterias")
+                        .HasForeignKey("IdMateria")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
+                        .WithMany("TutorMaterias")
+                        .HasForeignKey("IdTutor")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Materia");
+
+                    b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Materia", b =>
+                {
+                    b.Navigation("TutorMaterias");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Tutor", b =>
+                {
+                    b.Navigation("TutorMaterias");
                 });
 #pragma warning restore 612, 618
         }
