@@ -51,12 +51,12 @@ public class RegistrosAcademicosController : ControllerBase
             return Forbid();
         }
 
-        if (sesion.Estado == EstadosSesion.Cancelada)
+        if (sesion.Estado != EstadosSesion.Programada)
         {
             return Conflict(new
             {
                 mensaje =
-                    "No se puede registrar asistencia en una sesión cancelada."
+                    "Solo se puede registrar asistencia en una sesión programada."
             });
         }
 
@@ -148,12 +148,12 @@ public class RegistrosAcademicosController : ControllerBase
             return Forbid();
         }
 
-        if (sesion.Estado == EstadosSesion.Cancelada)
+        if (sesion.Estado != EstadosSesion.Programada)
         {
             return Conflict(new
             {
                 mensaje =
-                    "No se puede registrar seguimiento en una sesión cancelada."
+                    "Solo se puede registrar seguimiento en una sesión programada."
             });
         }
 
@@ -192,6 +192,109 @@ public class RegistrosAcademicosController : ControllerBase
         return Created(
             $"/api/sesiones/{idSesion}/seguimiento",
             resultado);
+    }
+
+    [HttpPatch("{idSesion:int}/completar")]
+    public async Task<IActionResult> CompletarSesion(int idSesion)
+    {
+        var sesion = await _context.SesionesTutoria
+            .FirstOrDefaultAsync(s => s.IdSesion == idSesion);
+
+        if (sesion is null)
+        {
+            return NotFound(new
+            {
+                mensaje = "Sesión no encontrada."
+            });
+        }
+
+        var idTutorActual = await ObtenerIdTutorActualAsync();
+
+        if (idTutorActual is null)
+        {
+            return Forbid();
+        }
+
+        if (sesion.IdTutor != idTutorActual.Value)
+        {
+            return Forbid();
+        }
+
+        if (sesion.Estado == EstadosSesion.Cancelada)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "Una sesión cancelada no puede completarse."
+            });
+        }
+
+        if (sesion.Estado == EstadosSesion.Completada)
+        {
+            return NoContent();
+        }
+
+        if (sesion.Estado != EstadosSesion.Programada)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "Solo las sesiones programadas pueden completarse."
+            });
+        }
+
+        var ahora = DateTime.Now;
+        var fechaActual = DateOnly.FromDateTime(ahora);
+        var horaActual = TimeOnly.FromDateTime(ahora);
+
+        var sesionAunNoFinaliza =
+            sesion.Fecha > fechaActual ||
+            (sesion.Fecha == fechaActual &&
+             sesion.HoraFin > horaActual);
+
+        if (sesionAunNoFinaliza)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "La sesión no puede completarse antes de su hora de finalización."
+            });
+        }
+
+        var asistencia = await _context.Asistencias
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.IdSesion == idSesion);
+
+        if (asistencia is null)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "Debe registrar la asistencia antes de completar la sesión."
+            });
+        }
+
+        if (asistencia.EstadoAsistencia == EstadosAsistencia.Presente)
+        {
+            var seguimientoExiste =
+                await _context.SeguimientosAcademicos
+                    .AnyAsync(s => s.IdSesion == idSesion);
+
+            if (!seguimientoExiste)
+            {
+                return Conflict(new
+                {
+                    mensaje =
+                        "Debe registrar el seguimiento académico antes de completar una sesión con asistencia presente."
+                });
+            }
+        }
+
+        sesion.Estado = EstadosSesion.Completada;
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
     private async Task<int?> ObtenerIdTutorActualAsync()
