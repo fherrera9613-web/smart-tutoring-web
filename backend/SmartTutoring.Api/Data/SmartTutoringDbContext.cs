@@ -18,8 +18,11 @@ public class SmartTutoringDbContext : DbContext
     public DbSet<TutorMateria> TutorMaterias => Set<TutorMateria>();
     public DbSet<SesionTutoria> SesionesTutoria => Set<SesionTutoria>();
     public DbSet<Asistencia> Asistencias => Set<Asistencia>();
+
     public DbSet<SeguimientoAcademico> SeguimientosAcademicos =>
         Set<SeguimientoAcademico>();
+
+    public DbSet<Pago> Pagos => Set<Pago>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -135,5 +138,31 @@ public class SmartTutoringDbContext : DbContext
             .WithOne()
             .HasForeignKey<SeguimientoAcademico>(s => s.IdSesion)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Pagos
+        modelBuilder.Entity<Pago>()
+            .Property(p => p.Monto)
+            .HasPrecision(12, 2);
+
+        modelBuilder.Entity<Pago>()
+            .HasOne(p => p.Estudiante)
+            .WithMany()
+            .HasForeignKey(p => p.IdEstudiante)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<Pago>()
+            .HasIndex(p => new
+            {
+                p.IdEstudiante,
+                p.FechaPago
+            });
+
+        modelBuilder.Entity<Pago>()
+            .ToTable(table =>
+            {
+                table.HasCheckConstraint(
+                    "CK_Pagos_MontoPositivo",
+                    "\"Monto\" > 0");
+            });
     }
 }

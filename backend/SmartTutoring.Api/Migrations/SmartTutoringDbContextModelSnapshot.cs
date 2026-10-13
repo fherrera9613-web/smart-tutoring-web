@@ -117,6 +117,42 @@ namespace SmartTutoring.Api.Migrations
                     b.ToTable("Materias");
                 });
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
+                {
+                    b.Property<int>("IdPago")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdPago"));
+
+                    b.Property<string>("Concepto")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<DateOnly>("FechaPago")
+                        .HasColumnType("date");
+
+                    b.Property<int>("IdEstudiante")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(12, 2)
+                        .HasColumnType("numeric(12,2)");
+
+                    b.Property<string>("Observaciones")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("IdPago");
+
+                    b.HasIndex("IdEstudiante", "FechaPago");
+
+                    b.ToTable("Pagos", t =>
+                        {
+                            t.HasCheckConstraint("CK_Pagos_MontoPositivo", "\"Monto\" > 0");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
                 {
                     b.Property<int>("IdSeguimiento")
@@ -290,6 +326,17 @@ namespace SmartTutoring.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Sesion");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Estudiante", "Estudiante")
+                        .WithMany()
+                        .HasForeignKey("IdEstudiante")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Estudiante");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
