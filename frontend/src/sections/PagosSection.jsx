@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import { getLocalIsoDate } from '../utils/date.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
-const EMPTY_FORM = {
-  idEstudiante: '',
-  monto: '',
-  fechaPago: new Date().toISOString().slice(0, 10),
-  concepto: '',
-  observaciones: '',
+function createEmptyForm() {
+  return {
+    idEstudiante: '',
+    monto: '',
+    fechaPago: getLocalIsoDate(),
+    concepto: '',
+    observaciones: '',
+  }
 }
 
 const money = new Intl.NumberFormat('es-NI', {
@@ -18,7 +21,7 @@ const money = new Intl.NumberFormat('es-NI', {
 
 export default function PagosSection({ onUnauthorized }) {
   const [estudiantes, setEstudiantes] = useState([])
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm] = useState(() => createEmptyForm())
   const [selectedStudent, setSelectedStudent] = useState('')
   const [pagos, setPagos] = useState([])
   const [loadingHistory, setLoadingHistory] = useState(false)
@@ -75,7 +78,7 @@ export default function PagosSection({ onUnauthorized }) {
 
       setSuccess('Pago registrado correctamente.')
       const id = form.idEstudiante
-      setForm({ ...EMPTY_FORM, idEstudiante: id })
+      setForm({ ...createEmptyForm(), idEstudiante: id })
       setSelectedStudent(id)
       await loadHistory(id)
     } catch (err) {
