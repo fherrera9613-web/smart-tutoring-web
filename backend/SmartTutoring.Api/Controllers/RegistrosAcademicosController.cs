@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -57,6 +57,17 @@ public class RegistrosAcademicosController : ControllerBase
             {
                 mensaje =
                     "Solo se puede registrar asistencia en una sesión programada."
+            });
+        }
+
+        var ahora = ObtenerAhoraCentro();
+
+        if (!SesionYaInicio(sesion, ahora))
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "La asistencia solo puede registrarse a partir de la hora de inicio de la sesión."
             });
         }
 
@@ -157,6 +168,39 @@ public class RegistrosAcademicosController : ControllerBase
             });
         }
 
+        var ahora = ObtenerAhoraCentro();
+
+        if (!SesionYaFinalizo(sesion, ahora))
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "El seguimiento académico solo puede registrarse después de la hora de finalización de la sesión."
+            });
+        }
+
+        var asistencia = await _context.Asistencias
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.IdSesion == idSesion);
+
+        if (asistencia is null)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "Debe registrar la asistencia antes del seguimiento académico."
+            });
+        }
+
+        if (asistencia.EstadoAsistencia != EstadosAsistencia.Presente)
+        {
+            return Conflict(new
+            {
+                mensaje =
+                    "No corresponde registrar seguimiento académico cuando el estudiante estuvo ausente."
+            });
+        }
+
         var seguimientoExiste =
             await _context.SeguimientosAcademicos
                 .AnyAsync(s => s.IdSesion == idSesion);
@@ -243,16 +287,9 @@ public class RegistrosAcademicosController : ControllerBase
             });
         }
 
-        var ahora = DateTime.Now;
-        var fechaActual = DateOnly.FromDateTime(ahora);
-        var horaActual = TimeOnly.FromDateTime(ahora);
+        var ahora = ObtenerAhoraCentro();
 
-        var sesionAunNoFinaliza =
-            sesion.Fecha > fechaActual ||
-            (sesion.Fecha == fechaActual &&
-             sesion.HoraFin > horaActual);
-
-        if (sesionAunNoFinaliza)
+        if (!SesionYaFinalizo(sesion, ahora))
         {
             return Conflict(new
             {
@@ -295,6 +332,54 @@ public class RegistrosAcademicosController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+
+    private static bool SesionYaInicio(
+        SesionTutoria sesion,
+        DateTime ahora)
+    {
+        var fechaActual = DateOnly.FromDateTime(ahora);
+        var horaActual = TimeOnly.FromDateTime(ahora);
+
+        return sesion.Fecha < fechaActual ||
+               (sesion.Fecha == fechaActual &&
+                sesion.HoraInicio <= horaActual);
+    }
+
+    private static bool SesionYaFinalizo(
+        SesionTutoria sesion,
+        DateTime ahora)
+    {
+        var fechaActual = DateOnly.FromDateTime(ahora);
+        var horaActual = TimeOnly.FromDateTime(ahora);
+
+        return sesion.Fecha < fechaActual ||
+               (sesion.Fecha == fechaActual &&
+                sesion.HoraFin <= horaActual);
+    }
+
+    private static DateTime ObtenerAhoraCentro()
+    {
+        var zonaHoraria = ObtenerZonaHorariaCentro();
+
+        return TimeZoneInfo.ConvertTimeFromUtc(
+            DateTime.UtcNow,
+            zonaHoraria);
+    }
+
+    private static TimeZoneInfo ObtenerZonaHorariaCentro()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(
+                "America/Managua");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById(
+                "Central America Standard Time");
+        }
     }
 
     private async Task<int?> ObtenerIdTutorActualAsync()
