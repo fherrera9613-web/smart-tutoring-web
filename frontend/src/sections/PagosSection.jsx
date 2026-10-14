@@ -6,7 +6,7 @@ import { resolveErrorMessage } from '../utils/errors.js'
 function createEmptyForm() {
   return {
     idEstudiante: '',
-    horas: '1',
+    minutos: '60',
     fechaPago: getLocalIsoDate(),
     concepto: 'Tutoría académica',
     observaciones: '',
@@ -65,12 +65,12 @@ export default function PagosSection({ onUnauthorized }) {
 
   const montoCalculado = useMemo(() => {
     if (!tarifa) return 0
-    const horas = Number(form.horas)
-    if (!Number.isFinite(horas) || horas <= 0) return 0
+    const minutos = Number(form.minutos)
+    if (!Number.isInteger(minutos) || minutos <= 0 || minutos % 15 !== 0) return 0
     return Math.round(
-      horas * Number(tarifa.tarifaCordobasPorHora) * 100,
+      (minutos / 60) * Number(tarifa.tarifaCordobasPorHora) * 100,
     ) / 100
-  }, [form.horas, tarifa])
+  }, [form.minutos, tarifa])
 
   const total = useMemo(
     () => pagos.reduce((sum, item) => sum + Number(item.monto || 0), 0),
@@ -126,7 +126,7 @@ export default function PagosSection({ onUnauthorized }) {
     try {
       await api.pagos.crear({
         idEstudiante: Number(form.idEstudiante),
-        horas: Number(form.horas),
+        minutos: Number(form.minutos),
         fechaPago: form.fechaPago,
         concepto: form.concepto || null,
         observaciones: form.observaciones || null,
@@ -184,16 +184,17 @@ export default function PagosSection({ onUnauthorized }) {
         </label>
 
         <label>
-          Horas a pagar
+          Duración a pagar (minutos)
           <input
             type="number"
-            min="0.25"
-            step="0.25"
-            name="horas"
-            value={form.horas}
+            min="15"
+            step="15"
+            name="minutos"
+            value={form.minutos}
             onChange={updateField}
             required
           />
+          <small className="muted">Registre la duración en intervalos de 15 minutos.</small>
         </label>
 
         <label>
