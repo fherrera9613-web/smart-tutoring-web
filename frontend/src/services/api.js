@@ -171,6 +171,7 @@ export const api = {
   },
 
   pagos: {
+    tarifa: () => request('/api/pagos/tarifa'),
     crear: (data) => request('/api/pagos', { method: 'POST', body: data }),
     porEstudiante: (idEstudiante) =>
       request(`/api/pagos/estudiante/${idEstudiante}`),

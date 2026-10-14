@@ -14,6 +14,10 @@ namespace SmartTutoring.Api.Controllers;
             RolesUsuario.PersonalAdministrativo)]
 public class PagosController : ControllerBase
 {
+    private const decimal TarifaUsdPorHora = 10m;
+    private const decimal TipoCambioOficial2026 = 36.6243m;
+    private const decimal TarifaCordobasPorHora = 366.24m;
+
     private readonly SmartTutoringDbContext _context;
 
     public PagosController(SmartTutoringDbContext context)
@@ -21,15 +25,26 @@ public class PagosController : ControllerBase
         _context = context;
     }
 
+    [HttpGet("tarifa")]
+    public ActionResult ObtenerTarifa()
+    {
+        return Ok(new
+        {
+            tarifaUsdPorHora = TarifaUsdPorHora,
+            tipoCambioCordobasPorUsd = TipoCambioOficial2026,
+            tarifaCordobasPorHora = TarifaCordobasPorHora
+        });
+    }
+
     [HttpPost]
     public async Task<ActionResult<PagoDto>> Crear(
         CrearPagoDto dto)
     {
-        if (dto.Monto <= 0)
+        if (dto.Horas <= 0)
         {
             return BadRequest(new
             {
-                mensaje = "El monto del pago debe ser mayor que cero."
+                mensaje = "La cantidad de horas debe ser mayor que cero."
             });
         }
 
@@ -49,7 +64,7 @@ public class PagosController : ControllerBase
         var pago = new Pago
         {
             IdEstudiante = dto.IdEstudiante,
-            Monto = dto.Monto,
+            Monto = CalcularMonto(dto.Horas),
             FechaPago = dto.FechaPago!.Value,
 
             Concepto =
@@ -123,5 +138,13 @@ public class PagosController : ControllerBase
             .ToListAsync();
 
         return Ok(pagos);
+    }
+
+    private static decimal CalcularMonto(decimal horas)
+    {
+        return Math.Round(
+            horas * TarifaCordobasPorHora,
+            2,
+            MidpointRounding.AwayFromZero);
     }
 }

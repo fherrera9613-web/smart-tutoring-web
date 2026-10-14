@@ -154,7 +154,16 @@ export default function EstudiantesSection({ onUnauthorized }) {
                 <tbody>
                   {history.sesiones.map((row) => (
                     <tr key={row.idSesion}>
-                      <td>{row.fecha}</td><td>{row.nombreMateria}</td><td>{row.nombreTutor}</td><td>{row.estadoSesion}</td><td>{row.estadoAsistencia || '—'}</td><td>{row.temaTrabajado || '—'}</td>
+                      <td>{row.fecha}</td>
+                      <td>{row.nombreMateria}</td>
+                      <td>{row.nombreTutor}</td>
+                      <td><span className={`status status-${row.estadoSesion.toLowerCase()}`}>{row.estadoSesion}</span></td>
+                      <td>
+                        {row.estadoAsistencia
+                          ? <span className={`status ${row.estadoAsistencia === 'Presente' ? 'status-completada' : 'status-cancelada'}`}>{row.estadoAsistencia}</span>
+                          : '—'}
+                      </td>
+                      <td>{row.temaTrabajado || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
