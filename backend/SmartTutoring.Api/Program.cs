@@ -81,6 +81,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/openapi/v1.json", "SMART Tutoring API v1");
+        options.DocumentTitle = "SMART Tutoring API";
+    });
 }
 
 app.UseHttpsRedirection();
