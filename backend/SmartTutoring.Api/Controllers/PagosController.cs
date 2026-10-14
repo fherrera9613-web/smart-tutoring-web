@@ -16,7 +16,8 @@ public class PagosController : ControllerBase
 {
     private const decimal TarifaUsdPorHora = 10m;
     private const decimal TipoCambioOficial2026 = 36.6243m;
-    private const decimal TarifaCordobasPorHora = 366.24m;
+    private const decimal TarifaCordobasPorHoraExacta =
+        TarifaUsdPorHora * TipoCambioOficial2026;
 
     private readonly SmartTutoringDbContext _context;
 
@@ -32,7 +33,10 @@ public class PagosController : ControllerBase
         {
             tarifaUsdPorHora = TarifaUsdPorHora,
             tipoCambioCordobasPorUsd = TipoCambioOficial2026,
-            tarifaCordobasPorHora = TarifaCordobasPorHora
+            tarifaCordobasPorHora = Math.Round(
+                TarifaCordobasPorHoraExacta,
+                2,
+                MidpointRounding.AwayFromZero)
         });
     }
 
@@ -40,11 +44,12 @@ public class PagosController : ControllerBase
     public async Task<ActionResult<PagoDto>> Crear(
         CrearPagoDto dto)
     {
-        if (dto.Horas <= 0)
+        if (dto.Minutos <= 0 || dto.Minutos % 15 != 0)
         {
             return BadRequest(new
             {
-                mensaje = "La cantidad de horas debe ser mayor que cero."
+                mensaje =
+                    "La duración debe ser mayor que cero y expresarse en intervalos de 15 minutos."
             });
         }
 
@@ -64,7 +69,7 @@ public class PagosController : ControllerBase
         var pago = new Pago
         {
             IdEstudiante = dto.IdEstudiante,
-            Monto = CalcularMonto(dto.Horas),
+            Monto = CalcularMonto(dto.Minutos),
             FechaPago = dto.FechaPago!.Value,
 
             Concepto =
@@ -140,10 +145,12 @@ public class PagosController : ControllerBase
         return Ok(pagos);
     }
 
-    private static decimal CalcularMonto(decimal horas)
+    private static decimal CalcularMonto(int minutos)
     {
+        var horas = minutos / 60m;
+
         return Math.Round(
-            horas * TarifaCordobasPorHora,
+            horas * TarifaCordobasPorHoraExacta,
             2,
             MidpointRounding.AwayFromZero);
     }
