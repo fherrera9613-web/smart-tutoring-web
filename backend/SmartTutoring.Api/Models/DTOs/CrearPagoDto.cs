@@ -7,8 +7,8 @@ public class CrearPagoDto
     [Range(1, int.MaxValue)]
     public int IdEstudiante { get; set; }
 
-    [Range(typeof(decimal), "0.01", "1000")]
-    public decimal Horas { get; set; }
+    [Range(15, int.MaxValue)]
+    public int Minutos { get; set; }
 
     [Required]
     public DateOnly? FechaPago { get; set; }
