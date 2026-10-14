@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../services/api.js'
+import { getLocalIsoDate } from '../utils/date.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 function MetricCard({ label, value, hint }) {
@@ -25,7 +26,7 @@ export default function OverviewSection({ session, onUnauthorized }) {
       try {
         if (session.rol === 'Tutor') {
           const sesiones = await api.sesiones.misSesiones()
-          const hoy = new Date().toISOString().slice(0, 10)
+          const hoy = getLocalIsoDate()
           const programadas = sesiones.filter((item) => item.estado === 'Programada')
           const hoyCount = sesiones.filter((item) => item.fecha === hoy).length
 
