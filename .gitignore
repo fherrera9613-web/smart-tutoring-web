@@ -135,22 +135,22 @@ $tf/
 # Guidance Automation Toolkit
 *.gpState
 
-# ReSharper is a .NET coding add-in
+# ReSharper is a .NET code add-in
 _ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
-# TeamCity is a build add-in
+# TeamCity
 _TeamCity*
 
-# DotCover is a Code Coverage Tool
+# DotCover
 *.dotCover
 
-# AxoCover is a Code Coverage Tool
+# AxoCover
 .axoCover/*
 !.axoCover/settings.json
 
-# Coverlet is a free, cross platform Code Coverage Tool
+# Coverlet
 coverage*.json
 coverage*.xml
 coverage*.info
@@ -196,8 +196,7 @@ publish/
 *.publishproj
 
 # Microsoft Azure Web App publish settings. Comment the next line if you want to
-# checkin your Azure Web App publish settings, but sensitive information contained
-# in these scripts will be unencrypted
+# checkin your web deploy settings, but sensitive information contained in these scripts will be unencrypted
 PublishScripts/
 
 # NuGet Packages
@@ -305,7 +304,7 @@ node_modules/
 # Visual Studio 6 auto-generated project file (contains which files were open etc.)
 *.vbp
 
-# Visual Studio 6 workspace and project file (working project files containing files to include in project)
+# Visual Studio 6 workspace and project file (working project files containing files to include)
 *.dsw
 *.dsp
 
@@ -395,7 +394,7 @@ FodyWeavers.xsd
 # Local History for Visual Studio Code
 .history/
 
-# Windows Installer files from build outputs
+# Windows Installer files
 *.cab
 *.msi
 *.msix
