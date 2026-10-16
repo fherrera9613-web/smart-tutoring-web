@@ -14,6 +14,8 @@ namespace SmartTutoring.Api.Controllers;
             RolesUsuario.PersonalAdministrativo)]
 public class PagosController : ControllerBase
 {
+    // La tarifa exacta se conserva para que frontend y backend partan del mismo valor.
+    // El redondeo se aplica únicamente al monto monetario final.
     private const decimal TarifaUsdPorHora = 10m;
     private const decimal TipoCambioOficial2026 = 36.6243m;
     private const decimal TarifaCordobasPorHoraExacta =
@@ -29,6 +31,8 @@ public class PagosController : ControllerBase
     [HttpGet("tarifa")]
     public ActionResult ObtenerTarifa()
     {
+        // Se devuelve la tarifa exacta para evitar diferencias de un centavo
+        // entre la estimación visual del frontend y el cálculo definitivo del backend.
         return Ok(new
         {
             tarifaUsdPorHora = TarifaUsdPorHora,
@@ -41,6 +45,8 @@ public class PagosController : ControllerBase
     public async Task<ActionResult<PagoDto>> Crear(
         CrearPagoDto dto)
     {
+        // La duración se registra en intervalos de 15 minutos para mantener
+        // una unidad de cobro consistente con la regla definida para el proyecto.
         if (dto.Minutos <= 0 || dto.Minutos % 15 != 0)
         {
             return BadRequest(new
@@ -66,6 +72,7 @@ public class PagosController : ControllerBase
         var pago = new Pago
         {
             IdEstudiante = dto.IdEstudiante,
+            // El monto no se acepta desde el cliente: siempre lo calcula el servidor.
             Monto = CalcularMonto(dto.Minutos),
             FechaPago = dto.FechaPago!.Value,
 
@@ -146,6 +153,8 @@ public class PagosController : ControllerBase
     {
         var horas = minutos / 60m;
 
+        // MidpointRounding.AwayFromZero hace explícita la política de redondeo
+        // utilizada para el valor monetario que finalmente se persiste.
         return Math.Round(
             horas * TarifaCordobasPorHoraExacta,
             2,
