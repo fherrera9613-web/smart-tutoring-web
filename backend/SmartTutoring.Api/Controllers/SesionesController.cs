@@ -1,4 +1,4 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq.Expressions;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +17,8 @@ public class SesionesController : ControllerBase
 {
     private readonly SmartTutoringDbContext _context;
 
+    // Proyección común utilizada para devolver una vista consistente de la sesión
+    // sin exponer directamente la entidad de persistencia.
     private static readonly Expression<Func<SesionTutoria, SesionDto>>
         ProyeccionSesion = s => new SesionDto
         {
@@ -72,6 +74,8 @@ public class SesionesController : ControllerBase
             return Unauthorized();
         }
 
+        // El identificador del usuario autenticado se relaciona con su registro Tutor.
+        // De esta forma un Tutor solo puede consultar las sesiones que le pertenecen.
         var idTutor = await _context.Tutores
             .Where(t => t.IdUsuario == idUsuario.Value)
             .Select(t => (int?)t.IdTutor)
@@ -110,6 +114,8 @@ public class SesionesController : ControllerBase
             });
         }
 
+        // La autorización por rol no basta para el Tutor: también se comprueba
+        // que la sesión consultada esté asociada específicamente a su IdTutor.
         if (User.IsInRole(RolesUsuario.Tutor))
         {
             var idUsuario = ObtenerIdUsuarioActual();
@@ -193,6 +199,8 @@ public class SesionesController : ControllerBase
             });
         }
 
+        // Regla de negocio: no se puede programar una materia que el tutor
+        // no tenga asignada en la relación TutorMateria.
         var tutorImparteMateria = await _context.TutorMaterias
             .AnyAsync(tm =>
                 tm.IdTutor == dto.IdTutor &&
@@ -207,6 +215,9 @@ public class SesionesController : ControllerBase
             });
         }
 
+        // Dos intervalos se superponen cuando el nuevo inicio ocurre antes del
+        // final existente y el nuevo final ocurre después del inicio existente.
+        // Las sesiones canceladas no bloquean el horario.
         var existeConflicto = await _context.SesionesTutoria
             .AnyAsync(s =>
                 s.IdTutor == dto.IdTutor &&
@@ -292,6 +303,8 @@ public class SesionesController : ControllerBase
             });
         }
 
+        // Se reutiliza la misma regla de solapamiento, excluyendo la sesión
+        // que se está modificando para no compararla contra sí misma.
         var existeConflicto = await _context.SesionesTutoria
             .AnyAsync(s =>
                 s.IdSesion != id &&
@@ -359,6 +372,8 @@ public class SesionesController : ControllerBase
 
     private int? ObtenerIdUsuarioActual()
     {
+        // El identificador se obtiene del claim NameIdentifier o, como respaldo,
+        // del claim estándar sub incluido al generar el JWT.
         var claimId =
             User.FindFirstValue(ClaimTypes.NameIdentifier)
             ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
