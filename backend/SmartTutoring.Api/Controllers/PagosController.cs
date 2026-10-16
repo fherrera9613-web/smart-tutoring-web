@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartTutoring.Api.Data;
@@ -33,10 +33,7 @@ public class PagosController : ControllerBase
         {
             tarifaUsdPorHora = TarifaUsdPorHora,
             tipoCambioCordobasPorUsd = TipoCambioOficial2026,
-            tarifaCordobasPorHora = Math.Round(
-                TarifaCordobasPorHoraExacta,
-                2,
-                MidpointRounding.AwayFromZero)
+            tarifaCordobasPorHora = TarifaCordobasPorHoraExacta
         });
     }
 
