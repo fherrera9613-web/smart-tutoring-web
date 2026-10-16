@@ -8,6 +8,8 @@ using SmartTutoring.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Los secretos de desarrollo se leen desde la configuración (User Secrets en local)
+// para evitar almacenar credenciales o claves JWT dentro del repositorio.
 var connectionString = builder.Configuration
     .GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException(
@@ -27,6 +29,8 @@ var jwtAudience = builder.Configuration["Jwt:Audience"]
 
 var jwtKey = Convert.FromBase64String(jwtKeyBase64);
 
+// EF Core usa Npgsql como proveedor para traducir las operaciones del DbContext
+// a consultas compatibles con PostgreSQL.
 builder.Services.AddDbContext<SmartTutoringDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -36,6 +40,8 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<JwtTokenService>();
 
+// La autenticación JWT valida firma, emisor, audiencia y expiración.
+// ClockSkew = 0 evita aceptar tokens más allá de su vencimiento configurado.
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -60,6 +66,8 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
+// CORS permite únicamente los orígenes de desarrollo conocidos del frontend.
+// No sustituye la autenticación ni la autorización por roles.
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -78,6 +86,7 @@ builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+// OpenAPI y Swagger UI se habilitan solo en desarrollo para documentar y probar la API.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -93,11 +102,13 @@ app.UseHttpsRedirection();
 
 app.UseCors("Frontend");
 
+// El orden es intencional: primero se autentica la identidad y luego se evalúan permisos.
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+// En desarrollo se garantiza la existencia del usuario administrador inicial.
 await DatabaseSeeder.SeedAdminAsync(
     app.Services,
     builder.Configuration);
