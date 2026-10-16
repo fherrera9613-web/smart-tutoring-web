@@ -46,6 +46,8 @@ public class RegistrosAcademicosController : ControllerBase
             return Forbid();
         }
 
+        // Aunque el endpoint ya exige rol Tutor, también se verifica propiedad:
+        // un tutor no puede registrar información académica sobre sesiones ajenas.
         if (sesion.IdTutor != idTutorActual.Value)
         {
             return Forbid();
@@ -62,6 +64,7 @@ public class RegistrosAcademicosController : ControllerBase
 
         var ahora = ObtenerAhoraCentro();
 
+        // La asistencia se habilita desde el momento real de inicio de la sesión.
         if (!SesionYaInicio(sesion, ahora))
         {
             return Conflict(new
@@ -170,6 +173,8 @@ public class RegistrosAcademicosController : ControllerBase
 
         var ahora = ObtenerAhoraCentro();
 
+        // El seguimiento representa el trabajo realizado, por eso solo procede
+        // después de que haya terminado el horario programado de la sesión.
         if (!SesionYaFinalizo(sesion, ahora))
         {
             return Conflict(new
@@ -192,6 +197,7 @@ public class RegistrosAcademicosController : ControllerBase
             });
         }
 
+        // Si el estudiante estuvo ausente no existe trabajo académico que documentar.
         if (asistencia.EstadoAsistencia != EstadosAsistencia.Presente)
         {
             return Conflict(new
@@ -311,6 +317,8 @@ public class RegistrosAcademicosController : ControllerBase
             });
         }
 
+        // Cuando hubo asistencia Presente, completar la sesión exige que el tutor
+        // haya documentado previamente el seguimiento académico correspondiente.
         if (asistencia.EstadoAsistencia == EstadosAsistencia.Presente)
         {
             var seguimientoExiste =
@@ -333,7 +341,6 @@ public class RegistrosAcademicosController : ControllerBase
 
         return NoContent();
     }
-
 
     private static bool SesionYaInicio(
         SesionTutoria sesion,
@@ -370,6 +377,8 @@ public class RegistrosAcademicosController : ControllerBase
 
     private static TimeZoneInfo ObtenerZonaHorariaCentro()
     {
+        // Linux/macOS utilizan el identificador IANA. Windows utiliza el nombre
+        // alternativo; el fallback mantiene la misma zona horaria en ambos entornos.
         try
         {
             return TimeZoneInfo.FindSystemTimeZoneById(
