@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SmartTutoring.Api.Data;
 using SmartTutoring.Api.Models.Entities;
+using SmartTutoring.Api.OpenApi;
 using SmartTutoring.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -82,7 +83,14 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+
+// OpenAPI documenta el esquema Bearer y marca únicamente los endpoints
+// que requieren autorización para que Swagger UI pueda enviar el JWT.
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+    options.AddOperationTransformer<BearerSecurityRequirementTransformer>();
+});
 
 var app = builder.Build();
 
