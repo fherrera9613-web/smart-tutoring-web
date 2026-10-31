@@ -135,6 +135,14 @@ namespace SmartTutoring.Api.Migrations
                     b.Property<int>("IdEstudiante")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("IdSesion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("MetodoPago")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
                     b.Property<decimal>("Monto")
                         .HasPrecision(12, 2)
                         .HasColumnType("numeric(12,2)");
@@ -145,10 +153,16 @@ namespace SmartTutoring.Api.Migrations
 
                     b.HasKey("IdPago");
 
+                    b.HasIndex("IdSesion")
+                        .IsUnique()
+                        .HasFilter("\"IdSesion\" IS NOT NULL");
+
                     b.HasIndex("IdEstudiante", "FechaPago");
 
                     b.ToTable("Pagos", t =>
                         {
+                            t.HasCheckConstraint("CK_Pagos_MetodoValido", "\"MetodoPago\" IN ('Efectivo', 'Transferencia', 'Tarjeta')");
+
                             t.HasCheckConstraint("CK_Pagos_MontoPositivo", "\"Monto\" > 0");
                         });
                 });
@@ -336,7 +350,14 @@ namespace SmartTutoring.Api.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.Pago", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Estudiante");
+
+                    b.Navigation("Sesion");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.SeguimientoAcademico", b =>
