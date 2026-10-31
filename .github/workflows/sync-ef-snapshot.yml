@@ -34,6 +34,11 @@ jobs:
 
       - name: Generate current model snapshot
         working-directory: backend/SmartTutoring.Api
+        env:
+          ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=smart_tutoring;Username=smart;Password=smart
+          Jwt__Key: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+          Jwt__Issuer: SMARTTutoring.Api
+          Jwt__Audience: SMARTTutoring.Web
         run: dotnet ef migrations add SnapshotSync
 
       - name: Keep only the generated snapshot
