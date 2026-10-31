@@ -5,7 +5,8 @@ import { getLocalIsoDate } from '../utils/date.js'
 
 const EMPTY_FORM = { nombre: '', apellido: '', fechaNacimiento: '', carnet: '', telefono: '' }
 const NAME_PATTERN = "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[ '\\-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*"
-const CARNET_PATTERN = '[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*'
+const CARNET_PATTERN = 'ST-[0-9]{4}'
+const PHONE_PATTERN = '[0-9]{4}-?[0-9]{4}'
 
 export default function EstudiantesSection({ onUnauthorized }) {
   const [items, setItems] = useState([])
@@ -66,8 +67,8 @@ export default function EstudiantesSection({ onUnauthorized }) {
         <label>Nombre<input name="nombre" value={form.nombre} onChange={updateField} required minLength="2" maxLength="100" pattern={NAME_PATTERN} title="Use únicamente letras, espacios, apóstrofes o guiones." /></label>
         <label>Apellido<input name="apellido" value={form.apellido} onChange={updateField} required minLength="2" maxLength="100" pattern={NAME_PATTERN} title="Use únicamente letras, espacios, apóstrofes o guiones." /></label>
         <label>Fecha de nacimiento<input type="date" name="fechaNacimiento" value={form.fechaNacimiento} onChange={updateField} required max={getLocalIsoDate()} /></label>
-        <label>Carnet<input name="carnet" value={form.carnet} onChange={updateField} required minLength="4" maxLength="20" pattern={CARNET_PATTERN} placeholder="Ej. 6AAD7A84 o STC-001" title="4 a 20 caracteres alfanuméricos; puede utilizar guiones." /><small className="muted">4–20 caracteres alfanuméricos; se permiten guiones.</small></label>
-        <label>Teléfono<input name="telefono" value={form.telefono} onChange={updateField} maxLength="20" placeholder="Ej. 8888-1111" /></label>
+        <label>Carnet<input name="carnet" value={form.carnet} onChange={updateField} required minLength="7" maxLength="7" pattern={CARNET_PATTERN} placeholder="Ej. ST-0001" title="Use el formato ST-0001: prefijo ST, guion y cuatro dígitos." /><small className="muted">Formato institucional: ST-0001.</small></label>
+        <label>Teléfono<input type="tel" name="telefono" value={form.telefono} onChange={updateField} maxLength="9" pattern={PHONE_PATTERN} placeholder="Ej. 8888-1111" title="Ingrese exactamente 8 dígitos, con o sin guion." /><small className="muted">Opcional. Debe contener 8 dígitos.</small></label>
         <div className="form-actions"><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Guardando…' : editingId ? 'Actualizar' : 'Registrar'}</button>{editingId && <button className="button button-secondary" type="button" onClick={resetForm}>Cancelar edición</button>}</div>
       </form>
       {error && <div className="alert alert-error">{error}</div>}
