@@ -34,7 +34,7 @@ jobs:
 
       - name: Generate current model snapshot
         working-directory: backend/SmartTutoring.Api
-        run: dotnet ef migrations add SnapshotSync --no-build
+        run: dotnet ef migrations add SnapshotSync
 
       - name: Keep only the generated snapshot
         run: |
