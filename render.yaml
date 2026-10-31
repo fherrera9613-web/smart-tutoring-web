@@ -1,0 +1,77 @@
+services:
+  - type: web
+    name: smart-tutoring-api
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: backend/SmartTutoring.Api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "10000"
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: smart-tutoring-db
+          property: connectionString
+      - key: Jwt__Key
+        generateValue: true
+      - key: Jwt__Issuer
+        value: SMARTTutoring.Api
+      - key: Jwt__Audience
+        value: SMARTTutoring.Web
+      - key: SeedAdmin__Email
+        value: admin@smarttutoring.local
+      - key: SeedAdmin__Password
+        sync: false
+      - key: FrontendUrl
+        fromService:
+          name: smart-tutoring-web
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: OpenApi__Enabled
+        value: "true"
+
+  - type: web
+    name: smart-tutoring-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: commit
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          name: smart-tutoring-api
+          type: web
+          envVarKey: RENDER_EXTERNAL_URL
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      - path: /assets/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
+
+databases:
+  - name: smart-tutoring-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "17"
+    databaseName: smart_tutoring
+    user: smart_tutoring_app
+    ipAllowList: []
