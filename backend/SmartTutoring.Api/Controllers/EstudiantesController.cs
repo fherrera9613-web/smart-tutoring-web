@@ -1,95 +1,71 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartTutoring.Api.Data;
+using SmartTutoring.Api.Models;
 using SmartTutoring.Api.Models.DTOs;
 using SmartTutoring.Api.Models.Entities;
 
 namespace SmartTutoring.Api.Controllers;
 
 [Authorize(Roles = "Administrador,PersonalAdministrativo")]
-
 [ApiController]
 [Route("api/[controller]")]
 public class EstudiantesController : ControllerBase
 {
     private readonly SmartTutoringDbContext _context;
 
-    public EstudiantesController(SmartTutoringDbContext context)
-    {
-        _context = context;
-    }
+    public EstudiantesController(SmartTutoringDbContext context) => _context = context;
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<EstudianteDto>>> ObtenerTodos()
     {
-        var estudiantes = await _context.Estudiantes
-            .AsNoTracking()
-            .OrderBy(e => e.Apellido)
-            .ThenBy(e => e.Nombre)
+        var estudiantes = await _context.Estudiantes.AsNoTracking()
+            .OrderBy(e => e.Apellido).ThenBy(e => e.Nombre)
             .Select(e => new EstudianteDto
             {
-                IdEstudiante = e.IdEstudiante,
-                Nombre = e.Nombre,
-                Apellido = e.Apellido,
-                FechaNacimiento = e.FechaNacimiento,
-                Carnet = e.Carnet,
-                Telefono = e.Telefono
-            })
-            .ToListAsync();
-
+                IdEstudiante = e.IdEstudiante, Nombre = e.Nombre, Apellido = e.Apellido,
+                FechaNacimiento = e.FechaNacimiento, Carnet = e.Carnet, Telefono = e.Telefono
+            }).ToListAsync();
         return Ok(estudiantes);
     }
 
     [HttpGet("{id:int}")]
     public async Task<ActionResult<EstudianteDto>> ObtenerPorId(int id)
     {
-        var estudiante = await _context.Estudiantes
-            .AsNoTracking()
+        var estudiante = await _context.Estudiantes.AsNoTracking()
             .Where(e => e.IdEstudiante == id)
             .Select(e => new EstudianteDto
             {
-                IdEstudiante = e.IdEstudiante,
-                Nombre = e.Nombre,
-                Apellido = e.Apellido,
-                FechaNacimiento = e.FechaNacimiento,
-                Carnet = e.Carnet,
-                Telefono = e.Telefono
-            })
-            .FirstOrDefaultAsync();
+                IdEstudiante = e.IdEstudiante, Nombre = e.Nombre, Apellido = e.Apellido,
+                FechaNacimiento = e.FechaNacimiento, Carnet = e.Carnet, Telefono = e.Telefono
+            }).FirstOrDefaultAsync();
 
-        if (estudiante is null)
-        {
-            return NotFound();
-        }
-
-        return Ok(estudiante);
+        return estudiante is null
+            ? NotFound(new { mensaje = "Estudiante no encontrado." })
+            : Ok(estudiante);
     }
 
     [HttpPost]
-    public async Task<ActionResult<EstudianteDto>> Crear(
-        CrearEstudianteDto dto)
+    public async Task<ActionResult<EstudianteDto>> Crear(CrearEstudianteDto dto)
     {
-        var carnetExiste = await _context.Estudiantes
-            .AnyAsync(e => e.Carnet == dto.Carnet);
+        var errorValidacion = ValidarDatos(dto.Nombre, dto.Apellido, dto.Carnet);
+        if (errorValidacion is not null) return BadRequest(new { mensaje = errorValidacion });
 
-        if (carnetExiste)
-        {
-            return Conflict(new
-            {
-                mensaje = "Ya existe un estudiante registrado con ese carnet."
-            });
-        }
+        if (dto.FechaNacimiento > ObtenerFechaActualCentro())
+            return BadRequest(new { mensaje = "La fecha de nacimiento no puede estar en el futuro." });
+
+        var carnet = NormalizarCarnet(dto.Carnet);
+        if (await _context.Estudiantes.AnyAsync(e => e.Carnet == carnet))
+            return Conflict(new { mensaje = "Ya existe un estudiante registrado con ese carnet." });
 
         var estudiante = new Estudiante
         {
             Nombre = dto.Nombre.Trim(),
             Apellido = dto.Apellido.Trim(),
             FechaNacimiento = dto.FechaNacimiento,
-            Carnet = dto.Carnet.Trim(),
-            Telefono = string.IsNullOrWhiteSpace(dto.Telefono)
-                ? null
-                : dto.Telefono.Trim()
+            Carnet = carnet,
+            Telefono = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim()
         };
 
         _context.Estudiantes.Add(estudiante);
@@ -97,55 +73,51 @@ public class EstudiantesController : ControllerBase
 
         var resultado = new EstudianteDto
         {
-            IdEstudiante = estudiante.IdEstudiante,
-            Nombre = estudiante.Nombre,
-            Apellido = estudiante.Apellido,
-            FechaNacimiento = estudiante.FechaNacimiento,
-            Carnet = estudiante.Carnet,
-            Telefono = estudiante.Telefono
+            IdEstudiante = estudiante.IdEstudiante, Nombre = estudiante.Nombre,
+            Apellido = estudiante.Apellido, FechaNacimiento = estudiante.FechaNacimiento,
+            Carnet = estudiante.Carnet, Telefono = estudiante.Telefono
         };
 
-        return CreatedAtAction(
-            nameof(ObtenerPorId),
-            new { id = estudiante.IdEstudiante },
-            resultado);
+        return CreatedAtAction(nameof(ObtenerPorId), new { id = estudiante.IdEstudiante }, resultado);
     }
 
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Actualizar(
-        int id,
-        ActualizarEstudianteDto dto)
+    public async Task<IActionResult> Actualizar(int id, ActualizarEstudianteDto dto)
     {
         var estudiante = await _context.Estudiantes.FindAsync(id);
+        if (estudiante is null) return NotFound(new { mensaje = "Estudiante no encontrado." });
 
-        if (estudiante is null)
-        {
-            return NotFound();
-        }
+        var errorValidacion = ValidarDatos(dto.Nombre, dto.Apellido, dto.Carnet);
+        if (errorValidacion is not null) return BadRequest(new { mensaje = errorValidacion });
 
-        var carnetExiste = await _context.Estudiantes
-            .AnyAsync(e =>
-                e.Carnet == dto.Carnet &&
-                e.IdEstudiante != id);
+        if (dto.FechaNacimiento > ObtenerFechaActualCentro())
+            return BadRequest(new { mensaje = "La fecha de nacimiento no puede estar en el futuro." });
 
-        if (carnetExiste)
-        {
-            return Conflict(new
-            {
-                mensaje = "Ya existe otro estudiante registrado con ese carnet."
-            });
-        }
+        var carnet = NormalizarCarnet(dto.Carnet);
+        if (await _context.Estudiantes.AnyAsync(e => e.Carnet == carnet && e.IdEstudiante != id))
+            return Conflict(new { mensaje = "Ya existe otro estudiante registrado con ese carnet." });
 
         estudiante.Nombre = dto.Nombre.Trim();
         estudiante.Apellido = dto.Apellido.Trim();
         estudiante.FechaNacimiento = dto.FechaNacimiento;
-        estudiante.Carnet = dto.Carnet.Trim();
-        estudiante.Telefono = string.IsNullOrWhiteSpace(dto.Telefono)
-            ? null
-            : dto.Telefono.Trim();
+        estudiante.Carnet = carnet;
+        estudiante.Telefono = string.IsNullOrWhiteSpace(dto.Telefono) ? null : dto.Telefono.Trim();
 
         await _context.SaveChangesAsync();
-
         return NoContent();
     }
+
+    private static string? ValidarDatos(string nombre, string apellido, string carnet)
+    {
+        if (!DomainValidation.IsPersonName(nombre))
+            return "El nombre solo puede contener letras, espacios, apóstrofes y guiones.";
+        if (!DomainValidation.IsPersonName(apellido))
+            return "El apellido solo puede contener letras, espacios, apóstrofes y guiones.";
+        if (!DomainValidation.IsCarnet(carnet))
+            return "El carnet debe tener entre 4 y 20 caracteres alfanuméricos y puede usar guiones.";
+        return null;
+    }
+
+    private static string NormalizarCarnet(string carnet) => carnet.Trim().ToUpperInvariant();
+    private static DateOnly ObtenerFechaActualCentro() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-6));
 }
