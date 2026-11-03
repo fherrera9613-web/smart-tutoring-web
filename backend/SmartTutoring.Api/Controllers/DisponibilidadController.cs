@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,7 @@ namespace SmartTutoring.Api.Controllers;
 
 [ApiController]
 [Route("api/tutores/{idTutor:int}/disponibilidad")]
-[Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
+[Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo + "," + RolesUsuario.Tutor)]
 public class DisponibilidadController : ControllerBase
 {
     private readonly SmartTutoringDbContext _context;
@@ -19,6 +20,7 @@ public class DisponibilidadController : ControllerBase
     [HttpGet]
     public async Task<ActionResult> Consultar(int idTutor, [FromQuery] DateOnly? fecha = null)
     {
+        if (!await PuedeGestionarAsync(idTutor)) return Forbid();
         if (!await _context.Tutores.AnyAsync(t => t.IdTutor == idTutor))
             return NotFound(new { mensaje = "Tutor no encontrado." });
 
@@ -42,6 +44,7 @@ public class DisponibilidadController : ControllerBase
     [HttpGet("libres")]
     public async Task<ActionResult> ConsultarEspaciosLibres(int idTutor, [FromQuery] DateOnly fecha)
     {
+        if (!await PuedeGestionarAsync(idTutor)) return Forbid();
         if (!await _context.Tutores.AnyAsync(t => t.IdTutor == idTutor))
             return NotFound(new { mensaje = "Tutor no encontrado." });
 
@@ -95,6 +98,7 @@ public class DisponibilidadController : ControllerBase
     [HttpPut("horarios")]
     public async Task<IActionResult> GuardarHorarios(int idTutor, ActualizarHorariosTutorDto dto)
     {
+        if (!await PuedeGestionarAsync(idTutor)) return Forbid();
         if (!await _context.Tutores.AnyAsync(t => t.IdTutor == idTutor))
             return NotFound(new { mensaje = "Tutor no encontrado." });
         if (dto.Horarios.Count > 28)
@@ -146,6 +150,7 @@ public class DisponibilidadController : ControllerBase
     [HttpPost("bloqueos")]
     public async Task<ActionResult> CrearBloqueo(int idTutor, CrearBloqueoTutorDto dto)
     {
+        if (!await PuedeGestionarAsync(idTutor)) return Forbid();
         if (!await _context.Tutores.AnyAsync(t => t.IdTutor == idTutor))
             return NotFound(new { mensaje = "Tutor no encontrado." });
 
@@ -175,12 +180,27 @@ public class DisponibilidadController : ControllerBase
     [HttpDelete("bloqueos/{idBloqueo:int}")]
     public async Task<IActionResult> EliminarBloqueo(int idTutor, int idBloqueo)
     {
+        if (!await PuedeGestionarAsync(idTutor)) return Forbid();
         var bloqueo = await _context.BloqueosTutor.FirstOrDefaultAsync(b =>
             b.IdTutor == idTutor && b.IdBloqueo == idBloqueo);
         if (bloqueo is null) return NotFound(new { mensaje = "Bloqueo no encontrado." });
         _context.BloqueosTutor.Remove(bloqueo);
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    // El identificador en la ruta nunca concede permisos: se compara con el usuario autenticado.
+    private async Task<bool> PuedeGestionarAsync(int idTutor)
+    {
+        if (User.IsInRole(RolesUsuario.Administrador) ||
+            User.IsInRole(RolesUsuario.PersonalAdministrativo))
+            return true;
+
+        if (!User.IsInRole(RolesUsuario.Tutor)) return false;
+        var rawId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(rawId, out var idUsuario)) return false;
+        return await _context.Tutores.AsNoTracking()
+            .AnyAsync(t => t.IdTutor == idTutor && t.IdUsuario == idUsuario && t.Usuario.Activo);
     }
 
     private static bool EsIntervaloValido(TimeOnly inicio, TimeOnly fin) =>
