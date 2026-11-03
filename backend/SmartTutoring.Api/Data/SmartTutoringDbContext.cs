@@ -10,6 +10,8 @@ public class SmartTutoringDbContext : DbContext
     public DbSet<Estudiante> Estudiantes => Set<Estudiante>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<Tutor> Tutores => Set<Tutor>();
+    public DbSet<HorarioTutor> HorariosTutor => Set<HorarioTutor>();
+    public DbSet<BloqueoTutor> BloqueosTutor => Set<BloqueoTutor>();
     public DbSet<Materia> Materias => Set<Materia>();
     public DbSet<TutorMateria> TutorMaterias => Set<TutorMateria>();
     public DbSet<SesionTutoria> SesionesTutoria => Set<SesionTutoria>();
@@ -29,6 +31,25 @@ public class SmartTutoringDbContext : DbContext
             .HasOne(t => t.Usuario).WithOne()
             .HasForeignKey<Tutor>(t => t.IdUsuario)
             .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<HorarioTutor>()
+            .HasOne(h => h.Tutor).WithMany()
+            .HasForeignKey(h => h.IdTutor).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<HorarioTutor>().HasIndex(h => new { h.IdTutor, h.DiaSemana });
+        modelBuilder.Entity<HorarioTutor>().ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_HorariosTutor_Dia", "\"DiaSemana\" BETWEEN 0 AND 6");
+            table.HasCheckConstraint("CK_HorariosTutor_Horas", "\"HoraFin\" > \"HoraInicio\"");
+        });
+
+        modelBuilder.Entity<BloqueoTutor>()
+            .HasOne(b => b.Tutor).WithMany()
+            .HasForeignKey(b => b.IdTutor).OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.Entity<BloqueoTutor>().HasIndex(b => new { b.IdTutor, b.Fecha });
+        modelBuilder.Entity<BloqueoTutor>().ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_BloqueosTutor_Horas", "\"HoraFin\" > \"HoraInicio\"");
+        });
 
         modelBuilder.Entity<TutorMateria>().HasKey(tm => new { tm.IdTutor, tm.IdMateria });
         modelBuilder.Entity<TutorMateria>()
