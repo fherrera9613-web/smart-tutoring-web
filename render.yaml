@@ -34,7 +34,7 @@ services:
           type: web
           envVarKey: RENDER_EXTERNAL_URL
       - key: OpenApi__Enabled
-        value: "true"
+        value: "false"
 
   - type: web
     name: smart-tutoring-web
