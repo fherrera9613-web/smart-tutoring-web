@@ -1,7 +1,20 @@
 import { useState } from 'react'
 import { api, ApiError } from '../services/api.js'
 
-export default function Login({ onLogin }) {
+function ThemeIcon({ theme }) {
+  return theme === 'dark' ? (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4"/>
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"/>
+    </svg>
+  ) : (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/>
+    </svg>
+  )
+}
+
+export default function Login({ onLogin, theme, onToggleTheme }) {
   const [correoElectronico, setCorreoElectronico] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -36,6 +49,16 @@ export default function Login({ onLogin }) {
   return (
     <main className="login-page">
       <section className="login-panel" aria-labelledby="login-title">
+        <button
+          type="button"
+          className="theme-toggle login-theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
+          title={theme === 'dark' ? 'Modo claro' : 'Modo oscuro'}
+        >
+          <ThemeIcon theme={theme} />
+        </button>
+
         <div className="brand-mark" aria-hidden="true">ST</div>
         <p className="eyebrow">SMART Tutoring Center</p>
         <h1 id="login-title">Acceso al sistema</h1>
