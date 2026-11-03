@@ -141,7 +141,16 @@ export default function SesionesSection({ onUnauthorized }) {
             ? <p className="muted">Este tutor aún no tiene una jornada configurada. Configure sus horarios en Tutores para consultar disponibilidad real.</p>
             : freeSlots.length === 0
               ? <p className="muted">No hay espacios disponibles en la fecha seleccionada.</p>
-              : <div className="form-actions">{freeSlots.map((slot, index) => <span className="topbar-badge" key={index}>{slot.horaInicio.slice(0, 5)}–{slot.horaFin.slice(0, 5)}</span>)}</div>}
+              : <div className="form-actions">{freeSlots.map((slot, index) => <button type="button" className="button button-secondary" key={index}
+                onClick={() => {
+                  const start = slot.horaInicio.slice(0, 5)
+                  const [hh, mm] = start.split(':').map(Number)
+                  const [endHour, endMinute] = slot.horaFin.slice(0, 5).split(':').map(Number)
+                  const end = Math.min(hh * 60 + mm + 60, endHour * 60 + endMinute)
+                  setEditingId(null)
+                  setForm((current) => ({ ...current, idTutor: filterTutor, idMateria: '', fecha: filterDate,
+                    horaInicio: start, horaFin: `${String(Math.floor(end / 60)).padStart(2, '0')}:${String(end % 60).padStart(2, '0')}` }))
+                }} title="Preparar una sesión en este intervalo">{slot.horaInicio.slice(0, 5)}–{slot.horaFin.slice(0, 5)} · Usar</button>)}</div>}
         </div>}
         {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario en esta página: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
       </div>
