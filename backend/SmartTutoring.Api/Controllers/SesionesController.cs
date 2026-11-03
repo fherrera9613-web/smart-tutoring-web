@@ -126,6 +126,10 @@ public class SesionesController : ControllerBase
         if (!await _context.TutorMaterias.AnyAsync(tm => tm.IdTutor == dto.IdTutor && tm.IdMateria == dto.IdMateria))
             return Conflict(new { mensaje = "El tutor no está asociado a la materia seleccionada." });
 
+        var validacionDisponibilidad = await ValidarDisponibilidadTutor(dto.IdTutor, fecha, horaInicio, horaFin);
+        if (validacionDisponibilidad is not null)
+            return Conflict(new { mensaje = validacionDisponibilidad });
+
         var existeConflicto = await _context.SesionesTutoria.AnyAsync(s =>
             s.IdTutor == dto.IdTutor && s.Fecha == fecha && s.Estado != EstadosSesion.Cancelada &&
             horaInicio < s.HoraFin && horaFin > s.HoraInicio);
@@ -160,6 +164,10 @@ public class SesionesController : ControllerBase
         var errorHorario = ValidarHorario(fecha, horaInicio, horaFin);
         if (errorHorario is not null) return BadRequest(new { mensaje = errorHorario });
 
+        var validacionDisponibilidad = await ValidarDisponibilidadTutor(sesion.IdTutor, fecha, horaInicio, horaFin);
+        if (validacionDisponibilidad is not null)
+            return Conflict(new { mensaje = validacionDisponibilidad });
+
         var existeConflicto = await _context.SesionesTutoria.AnyAsync(s =>
             s.IdSesion != id && s.IdTutor == sesion.IdTutor && s.Fecha == fecha &&
             s.Estado != EstadosSesion.Cancelada && horaInicio < s.HoraFin && horaFin > s.HoraInicio);
@@ -188,6 +196,21 @@ public class SesionesController : ControllerBase
         sesion.Estado = EstadosSesion.Cancelada;
         await _context.SaveChangesAsync();
         return NoContent();
+    }
+
+    private async Task<string?> ValidarDisponibilidadTutor(int idTutor, DateOnly fecha, TimeOnly inicio, TimeOnly fin)
+    {
+        var horarios = _context.HorariosTutor.AsNoTracking().Where(h => h.IdTutor == idTutor);
+        if (await horarios.AnyAsync() &&
+            !await horarios.AnyAsync(h => h.DiaSemana == (int)fecha.DayOfWeek &&
+                h.HoraInicio <= inicio && h.HoraFin >= fin))
+            return "El horario está fuera de la jornada configurada para el tutor.";
+
+        if (await _context.BloqueosTutor.AnyAsync(b => b.IdTutor == idTutor &&
+            b.Fecha == fecha && inicio < b.HoraFin && fin > b.HoraInicio))
+            return "El tutor tiene un bloqueo de disponibilidad durante ese período.";
+
+        return null;
     }
 
     private static string? ValidarHorario(DateOnly fecha, TimeOnly horaInicio, TimeOnly horaFin)
