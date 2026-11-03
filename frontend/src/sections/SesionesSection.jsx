@@ -12,6 +12,9 @@ export default function SesionesSection({ onUnauthorized }) {
   const [agendaPage, setAgendaPage] = useState(1)
   const [agendaLoading, setAgendaLoading] = useState(false)
   const [agendaRevision, setAgendaRevision] = useState(0)
+  const [freeSlots, setFreeSlots] = useState([])
+  const [availabilityConfigured, setAvailabilityConfigured] = useState(false)
+  const [availabilityLoading, setAvailabilityLoading] = useState(false)
   const [estudiantes, setEstudiantes] = useState([])
   const [tutores, setTutores] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
@@ -59,6 +62,25 @@ export default function SesionesSection({ onUnauthorized }) {
       .finally(() => { if (active) setAgendaLoading(false) })
     return () => { active = false }
   }, [filterTutor, filterDate, agendaPage, agendaRevision])
+
+  useEffect(() => {
+    if (!filterTutor || !filterDate) {
+      setFreeSlots([])
+      setAvailabilityConfigured(false)
+      return
+    }
+    let active = true
+    setAvailabilityLoading(true)
+    api.tutores.espaciosLibres(Number(filterTutor), filterDate)
+      .then((result) => {
+        if (!active) return
+        setFreeSlots(result.intervalos)
+        setAvailabilityConfigured(result.configurado)
+      })
+      .catch((err) => { if (active) setError(resolveErrorMessage(err, onUnauthorized)) })
+      .finally(() => { if (active) setAvailabilityLoading(false) })
+    return () => { active = false }
+  }, [filterTutor, filterDate, agendaRevision])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -113,6 +135,14 @@ export default function SesionesSection({ onUnauthorized }) {
           <SearchableSelect label="Tutor" value={filterTutor} onChange={setFilterTutor} options={tutores} getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} placeholder="Buscar tutor por nombre" />
           <label>Fecha<input type="date" value={filterDate} onChange={(event) => setFilterDate(event.target.value)} /></label>
         </div>
+        {filterTutor && filterDate && <div className="subpanel" style={{ marginTop: 14 }}>
+          <h4>Espacios disponibles</h4>
+          {availabilityLoading ? <p className="muted">Consultando disponibilidad…</p> : !availabilityConfigured
+            ? <p className="muted">Este tutor aún no tiene una jornada configurada. Configure sus horarios en Tutores para consultar disponibilidad real.</p>
+            : freeSlots.length === 0
+              ? <p className="muted">No hay espacios disponibles en la fecha seleccionada.</p>
+              : <div className="form-actions">{freeSlots.map((slot, index) => <span className="topbar-badge" key={index}>{slot.horaInicio.slice(0, 5)}–{slot.horaFin.slice(0, 5)}</span>)}</div>}
+        </div>}
         {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario en esta página: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
       </div>
       <div className="panel table-panel">{loading || agendaLoading ? <p className="table-empty">Cargando sesiones…</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{sesiones.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}
