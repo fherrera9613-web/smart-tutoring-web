@@ -24,5 +24,5 @@ test('fecha de Nicaragua usa su zona horaria al cruzar medianoche UTC', () => {
 })
 
 test('fecha local retorna YYYY-MM-DD', () => {
-  assert.match(getLocalIsoDate(new Date('2026-11-03T12:00:00Z')), /^\\d{4}-\\d{2}-\\d{2}$/)
+  assert.equal(getLocalIsoDate(new Date('2026-11-03T12:00:00Z')), '2026-11-03')
 })
