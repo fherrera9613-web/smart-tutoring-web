@@ -8,6 +8,10 @@ const EMPTY_FORM = { idEstudiante: '', idTutor: '', idMateria: '', fecha: '', ho
 
 export default function SesionesSection({ onUnauthorized }) {
   const [sesiones, setSesiones] = useState([])
+  const [agendaTotal, setAgendaTotal] = useState(0)
+  const [agendaPage, setAgendaPage] = useState(1)
+  const [agendaLoading, setAgendaLoading] = useState(false)
+  const [agendaRevision, setAgendaRevision] = useState(0)
   const [estudiantes, setEstudiantes] = useState([])
   const [tutores, setTutores] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
@@ -22,8 +26,8 @@ export default function SesionesSection({ onUnauthorized }) {
   async function load() {
     setLoading(true); setError('')
     try {
-      const [sesionesData, estudiantesData, tutoresData] = await Promise.all([api.sesiones.listar(), api.estudiantes.listar(), api.tutores.listar()])
-      setSesiones(sesionesData); setEstudiantes(estudiantesData); setTutores(tutoresData)
+      const [estudiantesData, tutoresData] = await Promise.all([api.estudiantes.listar(), api.tutores.listar()])
+      setEstudiantes(estudiantesData); setTutores(tutoresData)
     } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
     finally { setLoading(false) }
   }
@@ -34,18 +38,27 @@ export default function SesionesSection({ onUnauthorized }) {
     return tutor?.materias || []
   }, [tutores, form.idTutor])
 
-  const filteredSessions = useMemo(() => {
-    if (!filterTutor) return []
-    return sesiones.filter((item) =>
-      String(item.idTutor) === filterTutor &&
-      (!filterDate || item.fecha === filterDate)
-    )
-  }, [sesiones, filterTutor, filterDate])
-
   const bookedSessions = useMemo(
-    () => filteredSessions.filter((item) => item.estado !== 'Cancelada'),
-    [filteredSessions]
+    () => sesiones.filter((item) => item.estado !== 'Cancelada'),
+    [sesiones]
   )
+
+  useEffect(() => { setAgendaPage(1) }, [filterTutor, filterDate])
+
+  useEffect(() => {
+    if (!filterTutor) { setSesiones([]); setAgendaTotal(0); return }
+    let active = true
+    setAgendaLoading(true)
+    api.sesiones.agenda(Number(filterTutor), filterDate, agendaPage)
+      .then((data) => {
+        if (!active) return
+        setSesiones(data.items)
+        setAgendaTotal(data.total)
+      })
+      .catch((err) => { if (active) setError(resolveErrorMessage(err, onUnauthorized)) })
+      .finally(() => { if (active) setAgendaLoading(false) })
+    return () => { active = false }
+  }, [filterTutor, filterDate, agendaPage, agendaRevision])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -68,7 +81,7 @@ export default function SesionesSection({ onUnauthorized }) {
     try {
       if (editingId) { await api.sesiones.reprogramar(editingId, schedule); setSuccess('Sesión reprogramada correctamente.') }
       else { await api.sesiones.crear({ idEstudiante: Number(form.idEstudiante), idTutor: Number(form.idTutor), idMateria: Number(form.idMateria), ...schedule }); setSuccess('Sesión programada correctamente.') }
-      resetForm(); await load()
+      resetForm(); await load(); setAgendaRevision((value) => value + 1)
     } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
     finally { setSaving(false) }
   }
@@ -76,7 +89,7 @@ export default function SesionesSection({ onUnauthorized }) {
   async function cancelSession(id) {
     if (!window.confirm('¿Desea cancelar esta sesión?')) return
     setError(''); setSuccess('')
-    try { await api.sesiones.cancelar(id); setSuccess('Sesión cancelada correctamente.'); await load() }
+    try { await api.sesiones.cancelar(id); setSuccess('Sesión cancelada correctamente.'); await load(); setAgendaRevision((value) => value + 1) }
     catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
   }
 
@@ -100,9 +113,15 @@ export default function SesionesSection({ onUnauthorized }) {
           <SearchableSelect label="Tutor" value={filterTutor} onChange={setFilterTutor} options={tutores} getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} placeholder="Buscar tutor por nombre" />
           <label>Fecha<input type="date" value={filterDate} onChange={(event) => setFilterDate(event.target.value)} /></label>
         </div>
-        {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
+        {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario en esta página: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
       </div>
-      <div className="panel table-panel">{loading ? <p>Cargando sesiones…</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas.</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : filteredSessions.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{filteredSessions.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}</div>
+      <div className="panel table-panel">{loading || agendaLoading ? <p className="table-empty">Cargando sesiones…</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{sesiones.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}
+        {filterTutor && agendaTotal > 50 && <div className="form-actions catalog-filter">
+          <span className="muted">Página {agendaPage} de {Math.ceil(agendaTotal / 50)} · {agendaTotal} sesiones</span>
+          <button type="button" className="button button-secondary" disabled={agendaPage === 1 || agendaLoading} onClick={() => setAgendaPage((p) => p - 1)}>Anterior</button>
+          <button type="button" className="button button-secondary" disabled={agendaPage * 50 >= agendaTotal || agendaLoading} onClick={() => setAgendaPage((p) => p + 1)}>Siguiente</button>
+        </div>}
+      </div>
     </div>
   )
 }
