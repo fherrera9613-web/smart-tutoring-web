@@ -42,6 +42,7 @@ public class PagosController : ControllerBase
         var hoy = ObtenerFechaActualCentro();
         var inicioMes = new DateOnly(hoy.Year, hoy.Month, 1);
         var inicioMesSiguiente = inicioMes.AddMonths(1);
+        var inicioHistorico = inicioMes.AddMonths(-5);
 
         var ingresosTotales = await _context.Pagos.SumAsync(p => (decimal?)p.Monto) ?? 0m;
         var pagosMesQuery = _context.Pagos.Where(p => p.FechaPago >= inicioMes && p.FechaPago < inicioMesSiguiente);
@@ -50,7 +51,32 @@ public class PagosController : ControllerBase
         var sesionesSinPago = await _context.SesionesTutoria.CountAsync(s =>
             s.Estado != EstadosSesion.Cancelada && !_context.Pagos.Any(p => p.IdSesion == s.IdSesion));
 
-        return Ok(new { ingresosTotales, ingresosMesActual, pagosMesActual, sesionesSinPago });
+        var pagosHistoricos = await _context.Pagos
+            .AsNoTracking()
+            .Where(p => p.FechaPago >= inicioHistorico && p.FechaPago < inicioMesSiguiente)
+            .Select(p => new { p.FechaPago, p.Monto })
+            .ToListAsync();
+
+        var ingresosPorMes = Enumerable.Range(0, 6)
+            .Select(indice => inicioHistorico.AddMonths(indice))
+            .Select(mes => new
+            {
+                anio = mes.Year,
+                mes = mes.Month,
+                total = pagosHistoricos
+                    .Where(p => p.FechaPago.Year == mes.Year && p.FechaPago.Month == mes.Month)
+                    .Sum(p => p.Monto)
+            })
+            .ToList();
+
+        return Ok(new
+        {
+            ingresosTotales,
+            ingresosMesActual,
+            pagosMesActual,
+            sesionesSinPago,
+            ingresosPorMes
+        });
     }
 
     [HttpPost]
