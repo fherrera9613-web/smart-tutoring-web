@@ -45,6 +45,35 @@ public class UsuariosController : ControllerBase
         return Ok(usuarios);
     }
 
+    [HttpGet("buscar")]
+    public async Task<ActionResult> Buscar([FromQuery] string? q = null,
+        [FromQuery] int pagina = 1, [FromQuery] int tamanio = 25)
+    {
+        if (pagina < 1 || tamanio < 1 || tamanio > 100 || q?.Length > 100)
+            return BadRequest(new { mensaje = "Parámetros de búsqueda inválidos." });
+
+        var consulta = _context.Usuarios.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var patron = "%" + q.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
+            var filtro = q.Trim().ToLowerInvariant();
+            consulta = consulta.Where(u =>
+                EF.Functions.ILike(u.CorreoElectronico, patron, "\\") ||
+                EF.Functions.ILike(u.Rol, patron, "\\") ||
+                (filtro == "activo" && u.Activo) || (filtro == "inactivo" && !u.Activo));
+        }
+
+        var total = await consulta.CountAsync();
+        var items = await consulta.OrderBy(u => u.IdUsuario)
+            .Skip((pagina - 1) * tamanio).Take(tamanio)
+            .Select(u => new UsuarioDto
+            {
+                IdUsuario = u.IdUsuario, CorreoElectronico = u.CorreoElectronico,
+                Rol = u.Rol, Activo = u.Activo, FechaRegistro = u.FechaRegistro
+            }).ToListAsync();
+        return Ok(new { items, total, pagina, tamanio });
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<UsuarioDto>> ObtenerPorId(int id)
     {
