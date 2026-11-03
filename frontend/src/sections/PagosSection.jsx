@@ -32,6 +32,9 @@ export default function PagosSection({ onUnauthorized }) {
   const [pendingSearch, setPendingSearch] = useState('')
   const [pendingRevision, setPendingRevision] = useState(0)
   const [pendingLoading, setPendingLoading] = useState(false)
+  const [reportFrom, setReportFrom] = useState(() => getLocalIsoDate().slice(0, 7) + '-01')
+  const [reportTo, setReportTo] = useState(() => getLocalIsoDate())
+  const [exporting, setExporting] = useState(false)
   const [lastReceipt, setLastReceipt] = useState(null)
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -94,6 +97,24 @@ export default function PagosSection({ onUnauthorized }) {
 
   function handleHistoryStudent(id) { setSelectedStudent(id); loadHistory(id) }
 
+  async function exportReport(event) {
+    event.preventDefault()
+    setError('')
+    setExporting(true)
+    try {
+      const csv = await api.pagos.exportarCsv(reportFrom, reportTo)
+      const url = URL.createObjectURL(csv)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `smart-tutoring-pagos-${reportFrom}-${reportTo}.csv`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
+    finally { setExporting(false) }
+  }
+
   function printReceipt(payment) {
     const popup = window.open('', '_blank', 'width=700,height=800')
     if (!popup) { setError('El navegador bloqueó la ventana de impresión. Permita ventanas emergentes para imprimir el comprobante.'); return }
@@ -145,6 +166,14 @@ export default function PagosSection({ onUnauthorized }) {
       {success && <div className="alert alert-success">{success}</div>}
       {lastReceipt && <div className="panel"><div className="section-heading compact"><div><h3>Comprobante #{String(lastReceipt.idPago).padStart(4, '0')}</h3><p className="muted">Pago registrado correctamente.</p></div><button className="button button-primary" type="button" onClick={() => printReceipt(lastReceipt)}>Imprimir comprobante</button></div><div className="metrics-grid payment-metrics"><div className="metric-card"><span>Estudiante</span><strong>{lastReceipt.nombreEstudiante}</strong><small>{lastReceipt.nombreMateria || 'Registro anterior'}</small></div><div className="metric-card"><span>Método</span><strong>{lastReceipt.metodoPago}</strong><small>{formatDate(lastReceipt.fechaPago)}</small></div><div className="metric-card"><span>Total</span><strong>{money.format(Number(lastReceipt.monto))}</strong><small>{lastReceipt.minutos ? `${lastReceipt.minutos} minutos` : '—'}</small></div></div></div>}
       <div className="panel"><div className="section-heading compact"><div><h3>Historial de pagos</h3><p className="muted">Consulte pagos y vuelva a emitir un comprobante.</p></div><SearchableSelect label="Estudiante" value={selectedStudent} onChange={handleHistoryStudent} options={estudiantes} getValue={(item) => item.idEstudiante} getLabel={(item) => `${item.nombre} ${item.apellido} — ${item.carnet}`} placeholder="Buscar estudiante" /></div>{loadingHistory ? <p>Cargando historial…</p> : selectedStudent && pagos.length === 0 ? <p className="muted">No hay pagos registrados para este estudiante.</p> : pagos.length > 0 ? <><div className="metrics-grid payment-metrics"><div className="metric-card"><span>Total pagado</span><strong>{money.format(total)}</strong><small>Historial del estudiante</small></div><div className="metric-card"><span>Cantidad de pagos</span><strong>{pagos.length}</strong><small>Registros encontrados</small></div></div><div className="table-wrap"><table><thead><tr><th>Comprobante</th><th>Fecha</th><th>Materia / sesión</th><th>Método</th><th>Monto</th><th></th></tr></thead><tbody>{pagos.map((item) => <tr key={item.idPago}><td>#{String(item.idPago).padStart(4, '0')}</td><td>{formatDate(item.fechaPago)}</td><td>{item.nombreMateria || item.concepto || 'Registro anterior'}{item.fechaSesion ? ` · ${formatDate(item.fechaSesion)}` : ''}</td><td>{item.metodoPago}</td><td>{money.format(Number(item.monto))}</td><td><button className="button button-small button-secondary" type="button" onClick={() => printReceipt(item)}>Comprobante</button></td></tr>)}</tbody></table></div></> : null}</div>
+      <div className="panel">
+        <div className="section-heading"><div><h3>Exportar pagos</h3><p className="muted">Descargue los pagos recibidos en CSV por período (máximo 366 días).</p></div></div>
+        <form className="form-grid payment-filters" onSubmit={exportReport}>
+          <label>Desde<input type="date" required value={reportFrom} onChange={(event) => setReportFrom(event.target.value)} /></label>
+          <label>Hasta<input type="date" required min={reportFrom} max={getLocalIsoDate()} value={reportTo} onChange={(event) => setReportTo(event.target.value)} /></label>
+          <button className="button button-primary" type="submit" disabled={exporting || !reportFrom || !reportTo || reportFrom > reportTo}>{exporting ? 'Generando…' : 'Exportar CSV'}</button>
+        </form>
+      </div>
       <div className="panel note-panel"><strong>Alcance:</strong> el sistema registra pagos recibidos y genera comprobantes administrativos. El procesamiento bancario en línea y la facturación fiscal quedan fuera del alcance del proyecto.</div>
     </div>
   )
