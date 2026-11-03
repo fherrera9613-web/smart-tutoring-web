@@ -21,8 +21,6 @@ export default function DisponibilidadEditor({ idTutor, onUnauthorized, title = 
     let active = true
     setLoading(true)
     setError('')
-    setSuccess('')
-    setNewBlock(EMPTY_BLOCK)
     api.tutores.disponibilidad(idTutor)
       .then((data) => {
         if (!active) return
