@@ -1,18 +1,17 @@
 /*
   Identidad visual de SMART Tutoring Center
-  Dirección: académica/editorial, sobria y cálida.
-  La paleta evita acentos saturados de aspecto genérico y usa tonos inspirados
-  en tinta, pizarra, resaltador y separadores de cuaderno.
+  Dirección: académica/editorial sobria, sin morados.
+  Paleta inspirada en tinta, pizarra, papel, resaltadores y marcadores de estudio.
 */
 
 :root {
   --primary: #2f466f;
   --primary-dark: #223654;
   --primary-soft: #edf1f6;
-  --accent: #75627f;
-  --accent-soft: #f1edf3;
-  --cyan: #3f7773;
-  --cyan-soft: #eaf3f1;
+  --accent: #8a6652;
+  --accent-soft: #f4eeea;
+  --cyan: #45757b;
+  --cyan-soft: #e9f2f2;
   --surface: #ffffff;
   --surface-alt: #f7f7f4;
   --border: #dfe2df;
@@ -31,9 +30,9 @@ body {
   background: #f4f5f2;
 }
 
-/* Marca y superficies */
+/* Marca y superficies: tinta + pizarra, sin violeta */
 .brand-mark {
-  background: linear-gradient(145deg, #304a74, #6f5f78);
+  background: linear-gradient(145deg, #304a74, #3e6d71);
 }
 
 .sidebar {
@@ -46,11 +45,11 @@ body {
 }
 
 .nav-item.active {
-  background: linear-gradient(135deg, rgba(67, 92, 130, .96), rgba(105, 83, 115, .9));
+  background: linear-gradient(135deg, #365476, #3f6f72);
 }
 
 .button-primary {
-  background: linear-gradient(135deg, #304a74, #405d88);
+  background: linear-gradient(135deg, #304a74, #405d78);
 }
 
 .button-primary:hover:not(:disabled) {
@@ -109,22 +108,21 @@ textarea:focus {
 .user-avatar { display: none; }
 
 /*
-  KPI: pestaña diagonal inspirada en separadores de cuaderno.
-  Reemplaza la burbuja circular decorativa.
+  KPI: recorte angular tipo marcador/separador de página.
+  No es círculo ni burbuja: ocupa la esquina inferior derecha con un borde diagonal.
 */
 .metric-card::after {
   content: '';
   position: absolute;
-  right: -9px;
-  bottom: 16px;
-  width: 76px;
-  height: 25px;
-  border-radius: 5px 0 0 5px;
-  clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  right: 0;
+  bottom: 0;
+  width: 74px;
+  height: 46px;
+  border-radius: 0 0 13px 0;
+  clip-path: polygon(58% 0, 100% 0, 100% 100%, 0 100%);
   background: currentColor;
-  opacity: .105;
-  transform: rotate(-7deg);
-  transform-origin: right center;
+  opacity: .095;
+  transform: none;
   pointer-events: none;
 }
 
@@ -142,14 +140,14 @@ textarea:focus {
 .metric-card-amber .metric-icon { color: var(--warning); background: var(--warning-soft); }
 .metric-card-red .metric-icon { color: var(--danger); background: var(--danger-soft); }
 
-/* Gráfico mensual: columnas más finas y rejilla editorial */
+/* Gráfico mensual: barras delgadas, sin columnas visualmente pesadas */
 .monthly-chart {
-  gap: 18px;
+  gap: 22px;
   background-image: repeating-linear-gradient(
     to top,
     transparent 0,
     transparent 39px,
-    rgba(98, 109, 119, .12) 40px
+    rgba(98, 109, 119, .11) 40px
   );
 }
 
@@ -161,36 +159,36 @@ textarea:focus {
 }
 
 .monthly-bar {
-  left: 34%;
-  right: 34%;
-  border-radius: 5px 5px 2px 2px;
-  background: linear-gradient(180deg, #607899 0%, #344e73 100%);
-  box-shadow: 0 4px 10px rgba(47,70,111,.12);
+  left: 40%;
+  right: 40%;
+  border-radius: 4px 4px 1px 1px;
+  background: linear-gradient(180deg, #66809f 0%, #344e73 100%);
+  box-shadow: 0 3px 8px rgba(47,70,111,.10);
 }
 
 .monthly-column:hover .monthly-bar {
-  transform: scaleX(1.12);
+  transform: scaleX(1.14);
   filter: brightness(1.04);
-  box-shadow: 0 6px 13px rgba(47,70,111,.18);
+  box-shadow: 0 5px 11px rgba(47,70,111,.16);
 }
 
 .monthly-column:last-child .monthly-bar {
-  background: linear-gradient(180deg, #8b7893 0%, #6f5b79 100%);
-  box-shadow: 0 4px 10px rgba(111,91,121,.16);
+  background: linear-gradient(180deg, #5d8a88 0%, #3f6f70 100%);
+  box-shadow: 0 3px 8px rgba(63,111,112,.14);
 }
 
 .monthly-column:last-child .monthly-label {
-  color: var(--accent);
+  color: #3f6f70;
   font-weight: 800;
 }
 
-/* Tema oscuro: misma identidad, no una paleta distinta */
+/* Tema oscuro: misma identidad cromática, sin violeta */
 :root[data-theme='dark'] {
   --primary: #9aacc6;
   --primary-dark: #d6dfeb;
   --primary-soft: #273347;
-  --accent: #b9a7bf;
-  --accent-soft: #352d39;
+  --accent: #c09b84;
+  --accent-soft: #3a302b;
   --cyan: #86aaa6;
   --cyan-soft: #243936;
   --surface: #18202a;
@@ -213,7 +211,7 @@ textarea:focus {
 }
 
 :root[data-theme='dark'] .login-page {
-  background: linear-gradient(145deg, #111922 0%, #151e28 54%, #211c24 100%);
+  background: linear-gradient(145deg, #111922 0%, #151e28 54%, #172526 100%);
 }
 
 :root[data-theme='dark'] .login-panel,
@@ -227,6 +225,14 @@ textarea:focus {
 
 :root[data-theme='dark'] .sidebar {
   background: linear-gradient(180deg, #101820 0%, #172230 58%, #1e2834 100%);
+}
+
+:root[data-theme='dark'] .nav-item.active {
+  background: linear-gradient(135deg, #344d68, #365f61);
+}
+
+:root[data-theme='dark'] .brand-mark {
+  background: linear-gradient(145deg, #405b7c, #426f70);
 }
 
 :root[data-theme='dark'] .topbar {
@@ -301,11 +307,15 @@ textarea:focus {
 
 :root[data-theme='dark'] .monthly-bar {
   background: linear-gradient(180deg, #8499b6 0%, #5e7595 100%);
-  box-shadow: 0 4px 10px rgba(0,0,0,.18);
+  box-shadow: 0 3px 8px rgba(0,0,0,.16);
 }
 
 :root[data-theme='dark'] .monthly-column:last-child .monthly-bar {
-  background: linear-gradient(180deg, #b29db8 0%, #8e7698 100%);
+  background: linear-gradient(180deg, #84aaa7 0%, #527c7b 100%);
+}
+
+:root[data-theme='dark'] .monthly-column:last-child .monthly-label {
+  color: #9fc4c1;
 }
 
 :root[data-theme='dark'] .metric-card strong { color: #eef1f3; }
@@ -329,5 +339,5 @@ textarea:focus {
   .topbar-actions { gap: 7px; }
   .topbar-badge { display: none; }
   .theme-toggle { width: 36px; height: 36px; }
-  .monthly-chart { gap: 12px; }
+  .monthly-chart { gap: 14px; }
 }
