@@ -44,6 +44,26 @@ public class SesionesController : ControllerBase
         return Ok(sesiones);
     }
 
+    // Consulta de agenda filtrada desde PostgreSQL; no carga el histórico completo.
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
+    [HttpGet("agenda")]
+    public async Task<ActionResult> ObtenerAgenda(
+        [FromQuery] int idTutor, [FromQuery] DateOnly? fecha,
+        [FromQuery] int pagina = 1, [FromQuery] int tamanio = 50)
+    {
+        if (idTutor <= 0 || pagina < 1 || tamanio < 1 || tamanio > 100)
+            return BadRequest(new { mensaje = "Indique un tutor válido, una página positiva y un tamaño de 1 a 100." });
+
+        var query = _context.SesionesTutoria.AsNoTracking().Where(s => s.IdTutor == idTutor);
+        if (fecha.HasValue) query = query.Where(s => s.Fecha == fecha.Value);
+
+        var total = await query.CountAsync();
+        var items = await query.OrderBy(s => s.Fecha).ThenBy(s => s.HoraInicio).ThenBy(s => s.IdSesion)
+            .Skip((pagina - 1) * tamanio).Take(tamanio)
+            .Select(ProyeccionSesion).ToListAsync();
+        return Ok(new { items, total, pagina, tamanio });
+    }
+
     [Authorize(Roles = RolesUsuario.Tutor)]
     [HttpGet("mis-sesiones")]
     public async Task<ActionResult<IEnumerable<SesionDto>>> ObtenerMisSesiones()
