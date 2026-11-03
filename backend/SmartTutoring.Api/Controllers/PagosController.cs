@@ -96,6 +96,13 @@ public class PagosController : ControllerBase
         if (sesion is null) return NotFound(new { mensaje = "Sesión no encontrada." });
         if (sesion.Estado == EstadosSesion.Cancelada)
             return Conflict(new { mensaje = "No se puede registrar un pago para una sesión cancelada." });
+
+        var ahoraCentro = DateTime.UtcNow.AddHours(-6);
+        var fechaCentro = DateOnly.FromDateTime(ahoraCentro);
+        var horaCentro = TimeOnly.FromDateTime(ahoraCentro);
+        if (sesion.Fecha > fechaCentro || (sesion.Fecha == fechaCentro && sesion.HoraFin > horaCentro))
+            return Conflict(new { mensaje = "Solo se permite pagar sesiones cuyo horario ya finalizó." });
+
         if (await _context.Pagos.AnyAsync(p => p.IdSesion == sesion.IdSesion))
             return Conflict(new { mensaje = "La sesión seleccionada ya tiene un pago registrado." });
 
