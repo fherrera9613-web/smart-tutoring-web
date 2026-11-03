@@ -150,6 +150,7 @@ export const api = {
   },
   usuarios: {
     listar: () => request('/api/usuarios'),
+    buscar: (q = '', pagina = 1, tamanio = 25) => request(`/api/usuarios/buscar?${new URLSearchParams({ q, pagina: String(pagina), tamanio: String(tamanio) })}`),
     obtener: (id) => request(`/api/usuarios/${id}`),
     crear: (data) => request('/api/usuarios', { method: 'POST', body: data }),
     actualizar: (id, data) => request(`/api/usuarios/${id}`, { method: 'PUT', body: data }),
