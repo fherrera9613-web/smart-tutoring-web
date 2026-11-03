@@ -105,6 +105,7 @@ export const api = {
   },
   sesiones: {
     listar: () => request('/api/sesiones'),
+    agenda: (idTutor, fecha, pagina = 1, tamanio = 50) => request(`/api/sesiones/agenda?${new URLSearchParams({ idTutor: String(idTutor), ...(fecha ? { fecha } : {}), pagina: String(pagina), tamanio: String(tamanio) })}`),
     misSesiones: () => request('/api/sesiones/mis-sesiones'),
     obtener: (id) => request(`/api/sesiones/${id}`),
     crear: (data) => request('/api/sesiones', { method: 'POST', body: data }),
@@ -116,6 +117,7 @@ export const api = {
   },
   pagos: {
     tarifa: () => request('/api/pagos/tarifa'),
+    pendientes: (pagina = 1, tamanio = 20, buscar = '', idEstudiante = '') => request(`/api/pagos/pendientes?${new URLSearchParams({ pagina: String(pagina), tamanio: String(tamanio), ...(buscar.trim() ? { buscar: buscar.trim() } : {}), ...(idEstudiante ? { idEstudiante: String(idEstudiante) } : {}) })}`),
     listar: () => request('/api/pagos'),
     resumen: () => request('/api/pagos/resumen'),
     crear: (data) => request('/api/pagos', { method: 'POST', body: data }),
