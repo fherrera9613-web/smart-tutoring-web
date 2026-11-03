@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import SearchableSelect from '../components/SearchableSelect.jsx'
+import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 const EMPTY_FORM = { nombre: '', apellido: '', correoElectronico: '', password: '', especialidad: '', experiencia: '' }
@@ -12,6 +14,7 @@ export default function TutoresSection({ onUnauthorized }) {
   const [editingId, setEditingId] = useState(null)
   const [assignmentTutorId, setAssignmentTutorId] = useState('')
   const [assignmentMateriaId, setAssignmentMateriaId] = useState('')
+  const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -24,6 +27,8 @@ export default function TutoresSection({ onUnauthorized }) {
     finally { setLoading(false) }
   }
   useEffect(() => { load() }, [])
+
+  const filteredTutores = useMemo(() => tutores.filter((item) => matchesSearch(search, item.nombre, item.apellido, item.correoElectronico, item.especialidad, item.materias?.map((m) => m.nombreMateria).join(' '))), [tutores, search])
 
   function updateField(event) { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value })) }
   function startEdit(item) { setEditingId(item.idTutor); setForm({ nombre: item.nombre || '', apellido: item.apellido || '', correoElectronico: item.correoElectronico || '', password: '', especialidad: item.especialidad || '', experiencia: item.experiencia ?? '' }); setError(''); setSuccess('') }
@@ -66,13 +71,13 @@ export default function TutoresSection({ onUnauthorized }) {
       </form>
       <form className="panel inline-form" onSubmit={assignSubject}>
         <div><h3>Asignar materia</h3><p className="muted">Relaciona un tutor con una materia que puede impartir.</p></div>
-        <select value={assignmentTutorId} onChange={(event) => setAssignmentTutorId(event.target.value)} required><option value="">Seleccione tutor</option>{tutores.map((item) => <option key={item.idTutor} value={item.idTutor}>{item.nombre} {item.apellido}</option>)}</select>
-        <select value={assignmentMateriaId} onChange={(event) => setAssignmentMateriaId(event.target.value)} required><option value="">Seleccione materia</option>{materias.map((item) => <option key={item.idMateria} value={item.idMateria}>{item.nombreMateria}</option>)}</select>
+        <SearchableSelect label="Tutor" value={assignmentTutorId} onChange={setAssignmentTutorId} options={tutores} getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} required />
+        <SearchableSelect label="Materia" value={assignmentMateriaId} onChange={setAssignmentMateriaId} options={materias} getValue={(item) => item.idMateria} getLabel={(item) => item.nombreMateria} required />
         <button className="button button-primary" type="submit">Asignar</button>
       </form>
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
-      <div className="panel table-panel">{loading ? <p>Cargando tutores…</p> : tutores.length === 0 ? <p className="muted">No hay tutores registrados.</p> : <div className="table-wrap"><table><thead><tr><th>Tutor</th><th>Correo</th><th>Especialidad</th><th>Experiencia</th><th>Materias</th><th>Acción</th></tr></thead><tbody>{tutores.map((item) => <tr key={item.idTutor}><td>{item.nombre} {item.apellido}</td><td>{item.correoElectronico}</td><td>{item.especialidad || '—'}</td><td>{item.experiencia ?? '—'}</td><td>{item.materias?.length ? item.materias.map((m) => m.nombreMateria).join(', ') : 'Sin asignar'}</td><td><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button></td></tr>)}</tbody></table></div>}</div>
+      <div className="panel table-panel"><div className="catalog-filter"><input type="search" aria-label="Buscar tutores" placeholder="Buscar tutor, correo, especialidad o materia" value={search} onChange={(event) => setSearch(event.target.value)} /></div>{loading ? <p>Cargando tutores…</p> : tutores.length === 0 ? <p className="muted">No hay tutores registrados.</p> : filteredTutores.length === 0 ? <p className="table-empty muted">No se encontraron tutores.</p> : <div className="table-wrap"><table><thead><tr><th>Tutor</th><th>Correo</th><th>Especialidad</th><th>Experiencia</th><th>Materias</th><th>Acción</th></tr></thead><tbody>{filteredTutores.map((item) => <tr key={item.idTutor}><td>{item.nombre} {item.apellido}</td><td>{item.correoElectronico}</td><td>{item.especialidad || '—'}</td><td>{item.experiencia ?? '—'}</td><td>{item.materias?.length ? item.materias.map((m) => m.nombreMateria).join(', ') : 'Sin asignar'}</td><td><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button></td></tr>)}</tbody></table></div>}</div>
     </div>
   )
 }
