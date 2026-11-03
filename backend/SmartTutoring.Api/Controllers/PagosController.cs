@@ -176,7 +176,7 @@ public class PagosController : ControllerBase
     {
         var texto = value ?? string.Empty;
         // Neutralizar fórmulas cuando el archivo se abra en un programa de hojas de cálculo.
-        if (texto.Length > 0 && "=+-@\\t\\r".Contains(texto[0]))
+        if (texto.Length > 0 && (texto[0] is '=' or '+' or '-' or '@' or '\t' or '\r'))
             texto = "'" + texto;
         return "\"" + texto.Replace("\"", "\"\"") + "\"";
     }
