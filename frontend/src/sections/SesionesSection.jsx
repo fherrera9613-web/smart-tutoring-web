@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import SearchableSelect from '../components/SearchableSelect.jsx'
 import { getLocalIsoDate } from '../utils/date.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
@@ -11,8 +12,6 @@ export default function SesionesSection({ onUnauthorized }) {
   const [tutores, setTutores] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
   const [filterTutor, setFilterTutor] = useState('')
-  const [tutorSearch, setTutorSearch] = useState('')
-  const [showTutorOptions, setShowTutorOptions] = useState(false)
   const [filterDate, setFilterDate] = useState(() => getLocalIsoDate())
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -34,19 +33,6 @@ export default function SesionesSection({ onUnauthorized }) {
     const tutor = tutores.find((item) => String(item.idTutor) === form.idTutor)
     return tutor?.materias || []
   }, [tutores, form.idTutor])
-
-  const matchingTutores = useMemo(() => {
-    const query = tutorSearch.trim().toLocaleLowerCase('es')
-    return tutores.filter((item) =>
-      `${item.nombre} ${item.apellido}`.toLocaleLowerCase('es').includes(query)
-    )
-  }, [tutores, tutorSearch])
-
-  function chooseTutor(item) {
-    setFilterTutor(String(item.idTutor))
-    setTutorSearch(`${item.nombre} ${item.apellido}`)
-    setShowTutorOptions(false)
-  }
 
   const filteredSessions = useMemo(() => {
     if (!filterTutor) return []
@@ -98,9 +84,9 @@ export default function SesionesSection({ onUnauthorized }) {
     <div className="section-stack">
       <div className="section-heading"><div><h2>Sesiones de tutoría</h2><p className="muted">Agenda de tutorías futuras y control de horarios.</p></div></div>
       <form className="panel form-grid" onSubmit={handleSubmit}>
-        {!editingId && <label>Estudiante<select name="idEstudiante" value={form.idEstudiante} onChange={updateField} required><option value="">Seleccione</option>{estudiantes.map((item) => <option key={item.idEstudiante} value={item.idEstudiante}>{item.nombre} {item.apellido} — {item.carnet}</option>)}</select></label>}
-        {!editingId && <label>Tutor<select name="idTutor" value={form.idTutor} onChange={updateField} required><option value="">Seleccione</option>{tutores.map((item) => <option key={item.idTutor} value={item.idTutor}>{item.nombre} {item.apellido}</option>)}</select></label>}
-        {!editingId && <label>Materia<select name="idMateria" value={form.idMateria} onChange={updateField} required disabled={!form.idTutor}><option value="">{form.idTutor ? 'Seleccione' : 'Seleccione primero un tutor'}</option>{materiasDisponibles.map((item) => <option key={item.idMateria} value={item.idMateria}>{item.nombreMateria}</option>)}</select></label>}
+        {!editingId && <SearchableSelect label="Estudiante" value={form.idEstudiante} onChange={(value) => setForm((current) => ({ ...current, idEstudiante: value }))} options={estudiantes} getValue={(item) => item.idEstudiante} getLabel={(item) => `${item.nombre} ${item.apellido} — ${item.carnet}`} required />}
+        {!editingId && <SearchableSelect label="Tutor" value={form.idTutor} onChange={(value) => setForm((current) => ({ ...current, idTutor: value, idMateria: '' }))} options={tutores} getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} required />}
+        {!editingId && <SearchableSelect label="Materia" value={form.idMateria} onChange={(value) => setForm((current) => ({ ...current, idMateria: value }))} options={materiasDisponibles} getValue={(item) => item.idMateria} getLabel={(item) => item.nombreMateria} disabled={!form.idTutor} placeholder={form.idTutor ? 'Buscar materia' : 'Seleccione primero un tutor'} required />}
         <label>Fecha<input type="date" name="fecha" value={form.fecha} onChange={updateField} required min={getLocalIsoDate()} /></label>
         <label>Hora de inicio<input type="time" name="horaInicio" value={form.horaInicio} onChange={updateField} required step="900" /></label>
         <label>Hora de finalización<input type="time" name="horaFin" value={form.horaFin} onChange={updateField} required step="900" /></label>
@@ -111,37 +97,7 @@ export default function SesionesSection({ onUnauthorized }) {
       <div className="panel">
         <div className="section-heading"><div><h3>Consultar horario por tutor</h3><p className="muted">Seleccione un tutor y una fecha para consultar las sesiones registradas. Los intervalos que no aparecen no garantizan disponibilidad fuera de su jornada laboral.</p></div></div>
         <div className="form-grid payment-filters">
-          <div className="tutor-search-field">
-            <label htmlFor="tutor-agenda-search">Tutor</label>
-            <input
-              id="tutor-agenda-search"
-              type="search"
-              role="combobox"
-              autoComplete="off"
-              aria-autocomplete="list"
-              aria-expanded={showTutorOptions}
-              aria-controls="tutor-agenda-options"
-              placeholder="Escriba el nombre del tutor"
-              value={tutorSearch}
-              onChange={(event) => { setTutorSearch(event.target.value); setFilterTutor(''); setShowTutorOptions(true) }}
-              onFocus={() => setShowTutorOptions(true)}
-              onKeyDown={(event) => {
-                if (event.key === 'Escape') setShowTutorOptions(false)
-                if (event.key === 'Enter' && showTutorOptions && matchingTutores.length > 0) {
-                  event.preventDefault()
-                  chooseTutor(matchingTutores[0])
-                }
-              }}
-              onBlur={(event) => {
-                if (!event.currentTarget.parentElement.contains(event.relatedTarget)) setShowTutorOptions(false)
-              }}
-            />
-            {showTutorOptions && <div className="tutor-search-options" id="tutor-agenda-options" role="listbox">
-              {matchingTutores.length === 0
-                ? <p className="muted">No se encontraron tutores.</p>
-                : matchingTutores.map((item) => <button key={item.idTutor} type="button" role="option" aria-selected={String(item.idTutor) === filterTutor} onClick={() => chooseTutor(item)}>{item.nombre} {item.apellido}</button>)}
-            </div>}
-          </div>
+          <SearchableSelect label="Tutor" value={filterTutor} onChange={setFilterTutor} options={tutores} getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} placeholder="Buscar tutor por nombre" />
           <label>Fecha<input type="date" value={filterDate} onChange={(event) => setFilterDate(event.target.value)} /></label>
         </div>
         {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
