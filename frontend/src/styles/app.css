@@ -349,3 +349,35 @@ tbody tr:last-child td { border-bottom: 0; }
   .section-heading, .payment-summary, .completion-box { align-items: stretch; flex-direction: column; }
   .monthly-chart { grid-template-columns: repeat(6, 76px); }
 }
+
+
+/* Búsqueda de tutores en la agenda */
+.tutor-search-field { position: relative; display: grid; align-content: end; gap: 7px; min-width: 0; }
+.tutor-search-options {
+  position: absolute;
+  z-index: 20;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+.tutor-search-options button {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  text-align: left;
+}
+.tutor-search-options button:last-child { border-bottom: 0; }
+.tutor-search-options button:hover,
+.tutor-search-options button:focus-visible { background: var(--primary-soft); outline: none; }
+.tutor-search-options p { padding: 12px; margin: 0; }
