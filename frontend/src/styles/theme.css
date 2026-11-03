@@ -1,50 +1,50 @@
 /*
   SMART Tutoring Center
-  Paleta viva original, aplicada con un lenguaje visual más institucional.
-  Se evitan degradados decorativos en marca, navegación y acciones principales.
+  Paleta fría institucional: azul acero, índigo humo, teal apagado y verde salvia.
+  Mantiene el contraste de la gama anterior sin caer en tonos neón o demasiado artificiales.
 */
 
 :root {
-  --primary: #3658d4;
-  --primary-dark: #263d9f;
-  --primary-soft: #eef1ff;
-  --accent: #7c3aed;
-  --accent-soft: #f3e8ff;
-  --cyan: #0f8ca8;
-  --cyan-soft: #e8f8fb;
+  --primary: #3f5f8a;
+  --primary-dark: #2d4668;
+  --primary-soft: #edf2f7;
+  --accent: #6f6b9d;
+  --accent-soft: #f0eef6;
+  --cyan: #4b7f88;
+  --cyan-soft: #eaf2f3;
   --surface: #ffffff;
-  --surface-alt: #f8fafc;
-  --border: #dde4ef;
-  --text: #182033;
-  --muted: #697386;
-  --danger: #c2413d;
-  --danger-soft: #fff0ef;
-  --success: #16815d;
-  --success-soft: #eaf8f2;
-  --warning: #c17a12;
-  --warning-soft: #fff6e8;
-  --shadow: 0 12px 30px rgba(30, 48, 88, .08);
+  --surface-alt: #f7f8fa;
+  --border: #dde3e9;
+  --text: #1f2935;
+  --muted: #6d7783;
+  --danger: #b65f59;
+  --danger-soft: #faecea;
+  --success: #56806b;
+  --success-soft: #edf3ef;
+  --warning: #ba8743;
+  --warning-soft: #faf2e6;
+  --shadow: 0 12px 30px rgba(43, 61, 82, .08);
 }
 
-body { background: #f3f6fb; }
+body { background: #f1f4f7; }
 
-/* Marca: dos colores planos, sin degradado */
+/* Marca bicolor, sin degradado */
 .brand-mark {
   background: var(--primary);
   box-shadow: inset -9px 0 0 var(--accent);
 }
 
 .sidebar {
-  background: #18223e;
+  background: #1c2735;
 }
 
 .sidebar-brand span,
-.user-summary span { color: #b8c5df; }
+.user-summary span { color: #b8c4d0; }
 
-/* Navegación activa: bloque sólido + acento lateral */
+/* Navegación activa: sólido con acento lateral */
 .nav-item.active {
   position: relative;
-  background: #334a95;
+  background: #405a78;
   box-shadow: none;
 }
 
@@ -59,15 +59,14 @@ body { background: #f3f6fb; }
   background: var(--accent);
 }
 
-/* Acciones principales: color plano */
 .button-primary { background: var(--primary); }
 .button-primary:hover:not(:disabled) { background: var(--primary-dark); }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #8ea2ef;
-  box-shadow: 0 0 0 3px rgba(54, 88, 212, .12);
+  border-color: #8fa3bb;
+  box-shadow: 0 0 0 3px rgba(63, 95, 138, .12);
 }
 
 /* Controles de tema */
@@ -82,10 +81,10 @@ textarea:focus {
   place-items: center;
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 4px 12px rgba(15,23,42,.05);
+  box-shadow: 0 4px 12px rgba(31,41,53,.05);
   transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-.theme-toggle:hover { transform: translateY(-1px); background: var(--primary-soft); border-color: #b9c5ee; }
+.theme-toggle:hover { transform: translateY(-1px); background: var(--primary-soft); border-color: #bcc8d5; }
 .theme-toggle svg { width: 18px; height: 18px; }
 .login-panel { position: relative; }
 .login-theme-toggle { position: absolute; top: 18px; right: 18px; }
@@ -121,7 +120,7 @@ textarea:focus {
   border-radius: 0 0 13px 0;
   clip-path: polygon(58% 0, 100% 0, 100% 100%, 0 100%);
   background: currentColor;
-  opacity: .095;
+  opacity: .09;
   pointer-events: none;
 }
 .metric-card-blue { color: var(--primary); }
@@ -140,9 +139,9 @@ textarea:focus {
 /* Gráfico mensual delgado */
 .monthly-chart {
   gap: 22px;
-  background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, rgba(105, 115, 134, .11) 40px);
+  background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, rgba(109, 119, 131, .11) 40px);
 }
-.monthly-track { background: transparent; border-bottom: 1px solid #d4dbe7; border-radius: 0; overflow: visible; }
+.monthly-track { background: transparent; border-bottom: 1px solid #d4dbe2; border-radius: 0; overflow: visible; }
 .monthly-bar {
   left: 50%;
   right: auto;
@@ -150,48 +149,48 @@ textarea:focus {
   transform: translateX(-50%);
   border-radius: 4px 4px 1px 1px;
   background: var(--primary);
-  box-shadow: 0 3px 8px rgba(54,88,212,.14);
+  box-shadow: 0 3px 8px rgba(63,95,138,.14);
 }
 .monthly-column:hover .monthly-bar {
   transform: translateX(-50%) scaleX(1.12);
   filter: brightness(1.06);
-  box-shadow: 0 5px 11px rgba(54,88,212,.20);
+  box-shadow: 0 5px 11px rgba(63,95,138,.20);
 }
-.monthly-column:last-child .monthly-bar { background: var(--accent); box-shadow: 0 3px 8px rgba(124,58,237,.18); }
+.monthly-column:last-child .monthly-bar { background: var(--accent); box-shadow: 0 3px 8px rgba(111,107,157,.18); }
 .monthly-column:last-child .monthly-label { color: var(--accent); font-weight: 800; }
 
 /* Tema oscuro */
 :root[data-theme='dark'] {
-  --primary: #91a3ff;
-  --primary-dark: #cbd3ff;
-  --primary-soft: #242d55;
-  --accent: #bd91ff;
-  --accent-soft: #35254d;
-  --cyan: #66d2e8;
-  --cyan-soft: #173845;
-  --surface: #161d2f;
-  --surface-alt: #1b2438;
-  --border: #2d3851;
-  --text: #edf2ff;
-  --muted: #a7b1c4;
-  --danger: #ff8b85;
-  --danger-soft: #402426;
-  --success: #64d6aa;
-  --success-soft: #17372e;
-  --warning: #f0bd66;
-  --warning-soft: #3d3020;
+  --primary: #91a6c3;
+  --primary-dark: #c8d3e2;
+  --primary-soft: #273446;
+  --accent: #aaa5c9;
+  --accent-soft: #343146;
+  --cyan: #7fa9b1;
+  --cyan-soft: #24383d;
+  --surface: #18212b;
+  --surface-alt: #1d2732;
+  --border: #303c49;
+  --text: #edf1f5;
+  --muted: #a9b2bc;
+  --danger: #d98b85;
+  --danger-soft: #3f2a29;
+  --success: #8fb19c;
+  --success-soft: #28372f;
+  --warning: #d2ae73;
+  --warning-soft: #403522;
   --shadow: 0 12px 30px rgba(0, 0, 0, .25);
 }
-:root[data-theme='dark'] body { background: #0f1524; color: var(--text); }
-:root[data-theme='dark'] .login-page { background: #101728; }
+:root[data-theme='dark'] body { background: #101820; color: var(--text); }
+:root[data-theme='dark'] .login-page { background: #111922; }
 :root[data-theme='dark'] .login-panel,
 :root[data-theme='dark'] .panel,
 :root[data-theme='dark'] .metric-card,
 :root[data-theme='dark'] .subpanel { background: var(--surface); border-color: var(--border); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
-:root[data-theme='dark'] .sidebar { background: #11182a; }
-:root[data-theme='dark'] .nav-item.active { background: #33446f; }
-:root[data-theme='dark'] .brand-mark { background: #6578d8; box-shadow: inset -9px 0 0 #9d6bea; }
-:root[data-theme='dark'] .topbar { background: rgba(18, 25, 42, .94); border-bottom-color: var(--border); }
+:root[data-theme='dark'] .sidebar { background: #111a24; }
+:root[data-theme='dark'] .nav-item.active { background: #394f67; }
+:root[data-theme='dark'] .brand-mark { background: #657e9c; box-shadow: inset -9px 0 0 #8e89b1; }
+:root[data-theme='dark'] .topbar { background: rgba(18, 27, 36, .95); border-bottom-color: var(--border); }
 :root[data-theme='dark'] label,
 :root[data-theme='dark'] .bar-label-row span,
 :root[data-theme='dark'] .monthly-value,
@@ -200,32 +199,32 @@ textarea:focus {
 :root[data-theme='dark'] td { color: var(--text); }
 :root[data-theme='dark'] input,
 :root[data-theme='dark'] select,
-:root[data-theme='dark'] textarea { background: #111827; color: var(--text); border-color: #35415c; }
+:root[data-theme='dark'] textarea { background: #111922; color: var(--text); border-color: #394653; }
 :root[data-theme='dark'] input::placeholder,
-:root[data-theme='dark'] textarea::placeholder { color: #748198; }
+:root[data-theme='dark'] textarea::placeholder { color: #7d8996; }
 :root[data-theme='dark'] input:focus,
 :root[data-theme='dark'] select:focus,
-:root[data-theme='dark'] textarea:focus { border-color: #7f91e8; box-shadow: 0 0 0 3px rgba(145,163,255,.16); }
-:root[data-theme='dark'] .button-secondary { background: #252f44; color: #e5eaf5; }
-:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303b52; }
-:root[data-theme='dark'] th { background: #1d2639; color: #b7c1d3; }
+:root[data-theme='dark'] textarea:focus { border-color: #8095ad; box-shadow: 0 0 0 3px rgba(145,166,195,.15); }
+:root[data-theme='dark'] .button-secondary { background: #26313d; color: #e6ebf0; }
+:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303d49; }
+:root[data-theme='dark'] th { background: #202a35; color: #bcc5ce; }
 :root[data-theme='dark'] th,
-:root[data-theme='dark'] td { border-bottom-color: #2a344a; }
-:root[data-theme='dark'] tbody tr:hover { background: #1b2437; }
+:root[data-theme='dark'] td { border-bottom-color: #2d3944; }
+:root[data-theme='dark'] tbody tr:hover { background: #1d2731; }
 :root[data-theme='dark'] .payment-summary,
-:root[data-theme='dark'] .completion-box { background: #1b2437; border-color: #2f3a52; }
-:root[data-theme='dark'] .bar-track { background: #273149; }
-:root[data-theme='dark'] .monthly-chart { background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, #273149 40px); }
-:root[data-theme='dark'] .monthly-track { background: transparent; border-bottom-color: #3b4863; }
-:root[data-theme='dark'] .monthly-bar { background: #7387e9; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
-:root[data-theme='dark'] .monthly-column:last-child .monthly-bar { background: #9b6cf0; }
+:root[data-theme='dark'] .completion-box { background: #1e2832; border-color: #34414c; }
+:root[data-theme='dark'] .bar-track { background: #2a3540; }
+:root[data-theme='dark'] .monthly-chart { background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, #2a3540 40px); }
+:root[data-theme='dark'] .monthly-track { background: transparent; border-bottom-color: #46525d; }
+:root[data-theme='dark'] .monthly-bar { background: #6f88a8; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
+:root[data-theme='dark'] .monthly-column:last-child .monthly-bar { background: #8c86b0; }
 :root[data-theme='dark'] .monthly-column:last-child .monthly-label { color: var(--accent); }
-:root[data-theme='dark'] .metric-card strong { color: #e9edff; }
+:root[data-theme='dark'] .metric-card strong { color: #edf1f5; }
 :root[data-theme='dark'] .status-programada,
-:root[data-theme='dark'] .status-activo { color: #aebcff; background: #242d55; }
-:root[data-theme='dark'] .alert-error { color: #ffb0aa; border-color: #65373a; }
-:root[data-theme='dark'] .alert-success { color: #9ee9c9; border-color: #2f5a4d; }
-:root[data-theme='dark'] .theme-toggle:hover { border-color: #53618b; }
+:root[data-theme='dark'] .status-activo { color: #c4cfdd; background: #273446; }
+:root[data-theme='dark'] .alert-error { color: #efb1ac; border-color: #63413f; }
+:root[data-theme='dark'] .alert-success { color: #b9d2c1; border-color: #40584a; }
+:root[data-theme='dark'] .theme-toggle:hover { border-color: #59697a; }
 
 @media (prefers-reduced-motion: reduce) {
   .nav-item.active .nav-icon svg { animation: none; }
