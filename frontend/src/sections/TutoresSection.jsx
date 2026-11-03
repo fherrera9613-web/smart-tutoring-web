@@ -2,12 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
 import SearchableSelect from '../components/SearchableSelect.jsx'
 import { matchesSearch } from '../utils/search.js'
-import { getLocalIsoDate } from '../utils/date.js'
+import DisponibilidadEditor from '../components/DisponibilidadEditor.jsx'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 const EMPTY_FORM = { nombre: '', apellido: '', correoElectronico: '', password: '', especialidad: '', experiencia: '' }
-const DAYS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-const NEW_BLOCK = { fecha: '', horaInicio: '', horaFin: '', motivo: '' }
 const NAME_PATTERN = "[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:[ '\\-][A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*"
 
 export default function TutoresSection({ onUnauthorized }) {
@@ -18,11 +16,6 @@ export default function TutoresSection({ onUnauthorized }) {
   const [assignmentTutorId, setAssignmentTutorId] = useState('')
   const [assignmentMateriaId, setAssignmentMateriaId] = useState('')
   const [availabilityTutorId, setAvailabilityTutorId] = useState('')
-  const [weeklyHours, setWeeklyHours] = useState([])
-  const [blocks, setBlocks] = useState([])
-  const [newBlock, setNewBlock] = useState(NEW_BLOCK)
-  const [scheduleSaving, setScheduleSaving] = useState(false)
-  const [scheduleLoading, setScheduleLoading] = useState(false)
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -38,62 +31,6 @@ export default function TutoresSection({ onUnauthorized }) {
   useEffect(() => { load() }, [])
 
   const filteredTutores = useMemo(() => tutores.filter((item) => matchesSearch(search, item.nombre, item.apellido, item.correoElectronico, item.especialidad, item.materias?.map((m) => m.nombreMateria).join(' '))), [tutores, search])
-
-  async function loadAvailability(id) {
-    if (!id) { setWeeklyHours([]); setBlocks([]); return }
-    setScheduleLoading(true)
-    try {
-      const data = await api.tutores.disponibilidad(Number(id))
-      setWeeklyHours(data.horarios.map(({ diaSemana, horaInicio, horaFin }) => ({
-        diaSemana, horaInicio: horaInicio.slice(0, 5), horaFin: horaFin.slice(0, 5),
-      })))
-      setBlocks(data.bloqueos)
-    } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
-    finally { setScheduleLoading(false) }
-  }
-
-  function selectAvailabilityTutor(value) {
-    setAvailabilityTutorId(value)
-    setNewBlock(NEW_BLOCK)
-    loadAvailability(value)
-  }
-
-  async function saveAvailability(event) {
-    event.preventDefault()
-    setError(''); setSuccess('')
-    setScheduleSaving(true)
-    try {
-      await api.tutores.guardarHorarios(Number(availabilityTutorId), weeklyHours.map((item) => ({
-        diaSemana: item.diaSemana, horaInicio: item.horaInicio, horaFin: item.horaFin,
-      })))
-      setSuccess('Jornada semanal actualizada correctamente.')
-      await loadAvailability(availabilityTutorId)
-    } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
-    finally { setScheduleSaving(false) }
-  }
-
-  async function addBlock(event) {
-    event.preventDefault()
-    setError(''); setSuccess('')
-    setScheduleSaving(true)
-    try {
-      await api.tutores.bloquearHorario(Number(availabilityTutorId), newBlock)
-      setNewBlock(NEW_BLOCK)
-      setSuccess('Bloqueo de disponibilidad registrado.')
-      await loadAvailability(availabilityTutorId)
-    } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
-    finally { setScheduleSaving(false) }
-  }
-
-  async function deleteBlock(idBloqueo) {
-    if (!window.confirm('¿Eliminar este bloqueo de disponibilidad?')) return
-    setError(''); setSuccess('')
-    try {
-      await api.tutores.eliminarBloqueo(Number(availabilityTutorId), idBloqueo)
-      setSuccess('Bloqueo eliminado.')
-      await loadAvailability(availabilityTutorId)
-    } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
-  }
 
   function updateField(event) { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value })) }
   function startEdit(item) { setEditingId(item.idTutor); setForm({ nombre: item.nombre || '', apellido: item.apellido || '', correoElectronico: item.correoElectronico || '', password: '', especialidad: item.especialidad || '', experiencia: item.experiencia ?? '' }); setError(''); setSuccess('') }
@@ -140,44 +77,14 @@ export default function TutoresSection({ onUnauthorized }) {
         <SearchableSelect label="Materia" value={assignmentMateriaId} onChange={setAssignmentMateriaId} options={materias} getValue={(item) => item.idMateria} getLabel={(item) => item.nombreMateria} required />
         <button className="button button-primary" type="submit">Asignar</button>
       </form>
-      <div className="panel section-stack">
-        <div><h3>Disponibilidad y jornada de tutores</h3>
-          <p className="muted">Configure jornadas reales y excepciones. Si no existe jornada configurada, el sistema no puede garantizar disponibilidad fuera de las sesiones registradas.</p></div>
-        <SearchableSelect label="Tutor" value={availabilityTutorId} onChange={selectAvailabilityTutor} options={tutores}
-          getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} placeholder="Buscar tutor para configurar su jornada" />
-        {availabilityTutorId && (scheduleLoading ? <p className="muted">Cargando horarios…</p> : <>
-          <form className="section-stack" onSubmit={saveAvailability}>
-            <div className="section-heading"><h4>Jornada semanal</h4>
-              <button type="button" className="button button-secondary" onClick={() => setWeeklyHours((current) => [...current, { diaSemana: 1, horaInicio: '08:00', horaFin: '09:00' }])}>Agregar intervalo</button>
-            </div>
-            {weeklyHours.length === 0 && <p className="muted">Sin jornada configurada. Agregue los intervalos que el tutor confirmó.</p>}
-            {weeklyHours.map((entry, index) => <div key={index} className="form-grid">
-              <label>Día<select value={entry.diaSemana} onChange={(event) => setWeeklyHours((current) => current.map((item, i) => i === index ? { ...item, diaSemana: Number(event.target.value) } : item))}>
-                {DAYS.map((day, dayIndex) => <option key={dayIndex} value={dayIndex}>{day}</option>)}
-              </select></label>
-              <div className="form-actions">
-                <label>Desde<input type="time" step="900" required value={entry.horaInicio} onChange={(event) => setWeeklyHours((current) => current.map((item, i) => i === index ? { ...item, horaInicio: event.target.value } : item))} /></label>
-                <label>Hasta<input type="time" step="900" required value={entry.horaFin} onChange={(event) => setWeeklyHours((current) => current.map((item, i) => i === index ? { ...item, horaFin: event.target.value } : item))} /></label>
-                <button className="button button-danger" type="button" onClick={() => setWeeklyHours((current) => current.filter((_, i) => i !== index))}>Quitar</button>
-              </div>
-            </div>)}
-            <div className="form-actions"><button type="submit" className="button button-primary" disabled={scheduleSaving}>{scheduleSaving ? 'Guardando…' : 'Guardar jornada'}</button></div>
-          </form>
-          <form className="section-stack" onSubmit={addBlock}>
-            <h4>Bloquear un horario (ausencia o excepción)</h4>
-            <div className="form-grid">
-              <label>Fecha<input type="date" min={getLocalIsoDate()} value={newBlock.fecha} required onChange={(event) => setNewBlock((current) => ({ ...current, fecha: event.target.value }))} /></label>
-              <label>Motivo (opcional)<input maxLength="150" value={newBlock.motivo} onChange={(event) => setNewBlock((current) => ({ ...current, motivo: event.target.value }))} placeholder="Permiso, vacaciones…" /></label>
-              <label>Desde<input type="time" step="900" required value={newBlock.horaInicio} onChange={(event) => setNewBlock((current) => ({ ...current, horaInicio: event.target.value }))} /></label>
-              <label>Hasta<input type="time" step="900" required value={newBlock.horaFin} onChange={(event) => setNewBlock((current) => ({ ...current, horaFin: event.target.value }))} /></label>
-            </div>
-            <button type="submit" className="button button-secondary" disabled={scheduleSaving}>Agregar bloqueo</button>
-          </form>
-          {blocks.length > 0 && <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario bloqueado</th><th>Motivo</th><th>Acción</th></tr></thead><tbody>
-            {blocks.map((item) => <tr key={item.idBloqueo}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0,5)}–{item.horaFin?.slice(0,5)}</td><td>{item.motivo || '—'}</td>
-              <td><button type="button" className="button button-small button-danger" onClick={() => deleteBlock(item.idBloqueo)}>Eliminar</button></td></tr>)}
-          </tbody></table></div>}
-        </>)}
+      <div className="section-stack">
+        <div className="panel">
+          <h3>Supervisión de disponibilidad</h3>
+          <p className="muted">Cada tutor administra su propia jornada en «Mi disponibilidad». El personal administrativo puede consultar y corregir sus horarios cuando sea necesario.</p>
+          <SearchableSelect label="Tutor" value={availabilityTutorId} onChange={setAvailabilityTutorId} options={tutores}
+            getValue={(item) => item.idTutor} getLabel={(item) => `${item.nombre} ${item.apellido}`} placeholder="Buscar tutor" />
+        </div>
+        {availabilityTutorId && <DisponibilidadEditor key={availabilityTutorId} idTutor={Number(availabilityTutorId)} onUnauthorized={onUnauthorized} title="Jornada y excepciones del tutor" />}
       </div>
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
