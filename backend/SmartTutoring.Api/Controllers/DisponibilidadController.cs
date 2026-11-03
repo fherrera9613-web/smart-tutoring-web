@@ -67,9 +67,12 @@ public class DisponibilidadController : ControllerBase
             .OrderBy(i => i.inicio).ThenBy(i => i.fin).ToList();
         var libres = new List<object>();
         var ahora = DateTime.UtcNow.AddHours(-6);
-        var horaMinima = fecha == hoy
-            ? TimeOnly.FromDateTime(ahora).AddMinutes(15 - (ahora.Minute % 15))
-            : TimeOnly.MinValue;
+        var primerMinutoDisponible = fecha == hoy
+            ? ((ahora.Hour * 60 + ahora.Minute) / 15 + 1) * 15
+            : 0;
+        if (primerMinutoDisponible >= 1440)
+            return Ok(new { configurado, intervalos = Array.Empty<object>() });
+        var horaMinima = new TimeOnly(primerMinutoDisponible / 60, primerMinutoDisponible % 60);
 
         foreach (var franja in horas)
         {
