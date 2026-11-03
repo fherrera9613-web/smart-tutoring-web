@@ -1,0 +1,29 @@
+.brand-logo {
+  display: block;
+  object-fit: contain;
+  background: #ffffff;
+  border: 1px solid rgba(63, 95, 138, .14);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, .08);
+}
+
+.brand-logo-small {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.brand-logo-login {
+  width: 64px;
+  height: 64px;
+  padding: 6px;
+  border-radius: 16px;
+  margin-bottom: 18px;
+}
+
+:root[data-theme='dark'] .brand-logo {
+  background: #f8fafc;
+  border-color: rgba(255, 255, 255, .08);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .22);
+}
