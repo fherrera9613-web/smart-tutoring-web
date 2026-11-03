@@ -11,6 +11,8 @@ export default function SesionesSection({ onUnauthorized }) {
   const [tutores, setTutores] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
   const [filterTutor, setFilterTutor] = useState('')
+  const [tutorSearch, setTutorSearch] = useState('')
+  const [showTutorOptions, setShowTutorOptions] = useState(false)
   const [filterDate, setFilterDate] = useState(() => getLocalIsoDate())
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -32,6 +34,19 @@ export default function SesionesSection({ onUnauthorized }) {
     const tutor = tutores.find((item) => String(item.idTutor) === form.idTutor)
     return tutor?.materias || []
   }, [tutores, form.idTutor])
+
+  const matchingTutores = useMemo(() => {
+    const query = tutorSearch.trim().toLocaleLowerCase('es')
+    return tutores.filter((item) =>
+      `${item.nombre} ${item.apellido}`.toLocaleLowerCase('es').includes(query)
+    )
+  }, [tutores, tutorSearch])
+
+  function chooseTutor(item) {
+    setFilterTutor(String(item.idTutor))
+    setTutorSearch(`${item.nombre} ${item.apellido}`)
+    setShowTutorOptions(false)
+  }
 
   const filteredSessions = useMemo(() => {
     if (!filterTutor) return []
@@ -96,7 +111,37 @@ export default function SesionesSection({ onUnauthorized }) {
       <div className="panel">
         <div className="section-heading"><div><h3>Consultar horario por tutor</h3><p className="muted">Seleccione un tutor y una fecha para consultar las sesiones registradas. Los intervalos que no aparecen no garantizan disponibilidad fuera de su jornada laboral.</p></div></div>
         <div className="form-grid payment-filters">
-          <label>Tutor<select value={filterTutor} onChange={(event) => setFilterTutor(event.target.value)}><option value="">Seleccione un tutor</option>{tutores.map((item) => <option key={item.idTutor} value={item.idTutor}>{item.nombre} {item.apellido}</option>)}</select></label>
+          <div className="tutor-search-field">
+            <label htmlFor="tutor-agenda-search">Tutor</label>
+            <input
+              id="tutor-agenda-search"
+              type="search"
+              role="combobox"
+              autoComplete="off"
+              aria-autocomplete="list"
+              aria-expanded={showTutorOptions}
+              aria-controls="tutor-agenda-options"
+              placeholder="Escriba el nombre del tutor"
+              value={tutorSearch}
+              onChange={(event) => { setTutorSearch(event.target.value); setFilterTutor(''); setShowTutorOptions(true) }}
+              onFocus={() => setShowTutorOptions(true)}
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') setShowTutorOptions(false)
+                if (event.key === 'Enter' && showTutorOptions && matchingTutores.length > 0) {
+                  event.preventDefault()
+                  chooseTutor(matchingTutores[0])
+                }
+              }}
+              onBlur={(event) => {
+                if (!event.currentTarget.parentElement.contains(event.relatedTarget)) setShowTutorOptions(false)
+              }}
+            />
+            {showTutorOptions && <div className="tutor-search-options" id="tutor-agenda-options" role="listbox">
+              {matchingTutores.length === 0
+                ? <p className="muted">No se encontraron tutores.</p>
+                : matchingTutores.map((item) => <button key={item.idTutor} type="button" role="option" aria-selected={String(item.idTutor) === filterTutor} onClick={() => chooseTutor(item)}>{item.nombre} {item.apellido}</button>)}
+            </div>}
+          </div>
           <label>Fecha<input type="date" value={filterDate} onChange={(event) => setFilterDate(event.target.value)} /></label>
         </div>
         {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
