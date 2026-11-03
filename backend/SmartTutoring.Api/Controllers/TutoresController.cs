@@ -10,7 +10,7 @@ using SmartTutoring.Api.Models.Entities;
 
 namespace SmartTutoring.Api.Controllers;
 
-[Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class TutoresController : ControllerBase
@@ -42,6 +42,7 @@ public class TutoresController : ControllerBase
             : Ok(perfil);
     }
 
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<TutorDto>>> ObtenerTodos()
     {
@@ -62,6 +63,7 @@ public class TutoresController : ControllerBase
         return Ok(tutores);
     }
 
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
     [HttpGet("{id:int}")]
     public async Task<ActionResult<TutorDto>> ObtenerPorId(int id)
     {
@@ -82,6 +84,7 @@ public class TutoresController : ControllerBase
         return tutor is null ? NotFound(new { mensaje = "Tutor no encontrado." }) : Ok(tutor);
     }
 
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
     [HttpPost]
     public async Task<ActionResult<TutorDto>> Crear(CrearTutorDto dto)
     {
@@ -121,6 +124,7 @@ public class TutoresController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorId), new { id = tutor.IdTutor }, resultado);
     }
 
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Actualizar(int id, ActualizarTutorDto dto)
     {
@@ -138,6 +142,7 @@ public class TutoresController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = RolesUsuario.Administrador + "," + RolesUsuario.PersonalAdministrativo)]
     [HttpPost("{idTutor:int}/materias/{idMateria:int}")]
     public async Task<IActionResult> AsignarMateria(int idTutor, int idMateria)
     {
