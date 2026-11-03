@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
-import { getLocalIsoDate } from '../utils/date.js'
+import { getCenterDateTime, getLocalIsoDate } from '../utils/date.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 function createEmptyForm() { return { idEstudiante: '', idSesion: '', fechaPago: getLocalIsoDate(), metodoPago: 'Efectivo', observaciones: '' } }
@@ -8,6 +8,12 @@ const money = new Intl.NumberFormat('es-NI', { style: 'currency', currency: 'NIO
 const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 })
 function formatDate(value) { if (!value) return '—'; const [year, month, day] = value.split('-'); return `${day}/${month}/${year}` }
 function sessionMinutes(session) { if (!session?.horaInicio || !session?.horaFin) return 0; const [sh, sm] = session.horaInicio.slice(0, 5).split(':').map(Number); const [eh, em] = session.horaFin.slice(0, 5).split(':').map(Number); return (eh * 60 + em) - (sh * 60 + sm) }
+function hasSessionEnded(session, centerNow) {
+  if (!session.fecha || !session.horaFin) return false
+  if (session.fecha < centerNow.date) return true
+  if (session.fecha > centerNow.date) return false
+  return session.horaFin.slice(0, 8).padEnd(8, '0') <= centerNow.time
+}
 function escapeHtml(value) { return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;') }
 
 export default function PagosSection({ onUnauthorized }) {
@@ -30,9 +36,10 @@ export default function PagosSection({ onUnauthorized }) {
   }
   useEffect(() => { loadBaseData().catch((err) => setError(resolveErrorMessage(err, onUnauthorized))) }, [])
 
+  const centerNow = getCenterDateTime()
   const paidSessionIds = useMemo(() => new Set(todosPagos.filter((item) => item.idSesion).map((item) => item.idSesion)), [todosPagos])
-  const availableSessions = useMemo(() => !form.idEstudiante ? [] : sesiones.filter((item) => String(item.idEstudiante) === form.idEstudiante && item.estado !== 'Cancelada' && !paidSessionIds.has(item.idSesion)), [sesiones, form.idEstudiante, paidSessionIds])
-  const selectedSession = useMemo(() => sesiones.find((item) => String(item.idSesion) === form.idSesion) || null, [sesiones, form.idSesion])
+  const availableSessions = useMemo(() => !form.idEstudiante ? [] : sesiones.filter((item) => String(item.idEstudiante) === form.idEstudiante && item.estado !== 'Cancelada' && !paidSessionIds.has(item.idSesion) && hasSessionEnded(item, centerNow)), [sesiones, form.idEstudiante, paidSessionIds, centerNow.date, centerNow.time])
+  const selectedSession = useMemo(() => availableSessions.find((item) => String(item.idSesion) === form.idSesion) || null, [availableSessions, form.idSesion])
   const minutos = sessionMinutes(selectedSession)
   const montoCalculado = useMemo(() => !tarifa || minutos <= 0 ? 0 : Math.round((minutos / 60) * Number(tarifa.tarifaCordobasPorHora) * 100) / 100, [minutos, tarifa])
   const total = useMemo(() => pagos.reduce((sum, item) => sum + Number(item.monto || 0), 0), [pagos])
@@ -48,7 +55,9 @@ export default function PagosSection({ onUnauthorized }) {
   }
 
   async function handleSubmit(event) {
-    event.preventDefault(); setSaving(true); setError(''); setSuccess('')
+    event.preventDefault(); setError(''); setSuccess('')
+    if (!selectedSession) { setError('Seleccione una sesión finalizada y pendiente de pago.'); return }
+    setSaving(true)
     try {
       const payment = await api.pagos.crear({ idSesion: Number(form.idSesion), fechaPago: form.fechaPago, metodoPago: form.metodoPago, observaciones: form.observaciones || null })
       setLastReceipt(payment); setSuccess(`Pago registrado correctamente por ${money.format(Number(payment.monto))}.`)
@@ -73,7 +82,7 @@ export default function PagosSection({ onUnauthorized }) {
       {tarifa && <div className="panel note-panel"><strong>Tarifa vigente:</strong>{' '}{usd.format(Number(tarifa.tarifaUsdPorHora))} por hora × C${Number(tarifa.tipoCambioCordobasPorUsd).toFixed(4)} = <strong>{money.format(Number(tarifa.tarifaCordobasPorHora))} por hora</strong>.</div>}
       <form className="panel form-grid" onSubmit={handleSubmit}>
         <label>Estudiante<select name="idEstudiante" value={form.idEstudiante} onChange={updateField} required><option value="">Seleccione</option>{estudiantes.map((item) => <option key={item.idEstudiante} value={item.idEstudiante}>{item.nombre} {item.apellido} — {item.carnet}</option>)}</select></label>
-        <label>Sesión / materia a pagar<select name="idSesion" value={form.idSesion} onChange={updateField} required disabled={!form.idEstudiante}><option value="">{form.idEstudiante ? 'Seleccione una tutoría' : 'Seleccione primero un estudiante'}</option>{availableSessions.map((item) => <option key={item.idSesion} value={item.idSesion}>{item.nombreMateria} — {formatDate(item.fecha)} — {item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)} — {item.nombreTutor}</option>)}</select>{form.idEstudiante && availableSessions.length === 0 && <small className="muted">No hay tutorías pendientes de pago para este estudiante.</small>}</label>
+        <label>Sesión / materia a pagar<select name="idSesion" value={form.idSesion} onChange={updateField} required disabled={!form.idEstudiante}><option value="">{form.idEstudiante ? 'Seleccione una sesión finalizada' : 'Seleccione primero un estudiante'}</option>{availableSessions.map((item) => <option key={item.idSesion} value={item.idSesion}>{item.nombreMateria} — {formatDate(item.fecha)} — {item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)} — {item.nombreTutor}</option>)}</select>{form.idEstudiante && availableSessions.length === 0 && <small className="muted">No hay sesiones finalizadas pendientes de pago para este estudiante.</small>}</label>
         <label>Duración<input value={minutos ? `${minutos} minutos` : 'Seleccione una tutoría'} readOnly /></label>
         <label>Monto calculado<input value={money.format(montoCalculado)} readOnly /></label>
         <label>Método de pago<select name="metodoPago" value={form.metodoPago} onChange={updateField} required><option value="Efectivo">Efectivo</option><option value="Transferencia">Transferencia</option><option value="Tarjeta">Tarjeta</option></select></label>
