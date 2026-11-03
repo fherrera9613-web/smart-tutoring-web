@@ -7,6 +7,7 @@ import SesionesSection from '../sections/SesionesSection.jsx'
 import PagosSection from '../sections/PagosSection.jsx'
 import UsuariosSection from '../sections/UsuariosSection.jsx'
 import MisSesionesSection from '../sections/MisSesionesSection.jsx'
+import smartTutoringLogo from '../assets/smart-tutoring-logo.svg'
 
 const ADMIN_ROLES = ['Administrador', 'PersonalAdministrativo']
 
@@ -105,7 +106,7 @@ export default function Dashboard({ session, onLogout, theme, onToggleTheme }) {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
-          <div className="brand-mark brand-mark-small" aria-hidden="true">ST</div>
+          <img className="brand-logo brand-logo-small" src={smartTutoringLogo} alt="" aria-hidden="true" />
           <div>
             <strong>SMART Tutoring</strong>
             <span>Centro de tutorías</span>
