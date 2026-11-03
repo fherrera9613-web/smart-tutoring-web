@@ -7,6 +7,7 @@ import SesionesSection from '../sections/SesionesSection.jsx'
 import PagosSection from '../sections/PagosSection.jsx'
 import UsuariosSection from '../sections/UsuariosSection.jsx'
 import MisSesionesSection from '../sections/MisSesionesSection.jsx'
+import MiDisponibilidadSection from '../sections/MiDisponibilidadSection.jsx'
 import smartTutoringLogo from '../assets/smart-tutoring-logo.svg'
 
 const ADMIN_ROLES = ['Administrador', 'PersonalAdministrativo']
@@ -21,6 +22,7 @@ function Icon({ name }) {
     pagos: <><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></>,
     usuarios: <><circle cx="8" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6"/><circle cx="17" cy="17" r="4"/><path d="M17 15v4M15 17h4"/></>,
     'mis-sesiones': <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="m8 16 2 2 4-4"/></>,
+    'mi-disponibilidad': <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 15l3 3 5-6"/></>,
   }
 
   return (
@@ -52,6 +54,7 @@ export default function Dashboard({ session, onLogout, theme, onToggleTheme }) {
       return [
         { id: 'inicio', label: 'Inicio' },
         { id: 'mis-sesiones', label: 'Mis sesiones' },
+        { id: 'mi-disponibilidad', label: 'Mi disponibilidad' },
       ]
     }
 
@@ -79,7 +82,9 @@ export default function Dashboard({ session, onLogout, theme, onToggleTheme }) {
     }
 
     if (rol === 'Tutor') {
-      return <MisSesionesSection {...commonProps} />
+      return activeSection === 'mi-disponibilidad'
+        ? <MiDisponibilidadSection {...commonProps} />
+        : <MisSesionesSection {...commonProps} />
     }
 
     if (!ADMIN_ROLES.includes(rol)) {
