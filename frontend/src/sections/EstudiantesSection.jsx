@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../services/api.js'
-import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 import { getLocalIsoDate } from '../utils/date.js'
 
@@ -12,6 +11,9 @@ const PHONE_PATTERN = '[0-9]{4}-?[0-9]{4}'
 export default function EstudiantesSection({ onUnauthorized }) {
   const [items, setItems] = useState([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const requestId = useRef(0)
   const [form, setForm] = useState(EMPTY_FORM)
   const [editingId, setEditingId] = useState(null)
   const [history, setHistory] = useState(null)
@@ -22,13 +24,18 @@ export default function EstudiantesSection({ onUnauthorized }) {
 
   async function load() {
     setLoading(true); setError('')
-    try { setItems(await api.estudiantes.listar()) }
+    const currentRequest = ++requestId.current
+    try {
+      const result = await api.estudiantes.buscar(search, page)
+      if (currentRequest === requestId.current) { setItems(result.items); setTotal(result.total) }
+    }
     catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
     finally { setLoading(false) }
   }
-  useEffect(() => { load() }, [])
-
-  const filteredItems = useMemo(() => items.filter((item) => matchesSearch(search, item.nombre, item.apellido, item.carnet, item.telefono)), [items, search])
+  useEffect(() => {
+    const timer = setTimeout(() => { load() }, 250)
+    return () => clearTimeout(timer)
+  }, [search, page])
 
   function updateField(event) {
     const { name } = event.target
@@ -78,13 +85,18 @@ export default function EstudiantesSection({ onUnauthorized }) {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
       <div className="panel table-panel">
-        <div className="catalog-filter"><input type="search" aria-label="Buscar estudiantes" placeholder="Buscar por nombre, carnet o teléfono" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-        {loading ? <p>Cargando estudiantes…</p> : items.length === 0 ? <p className="muted">No hay estudiantes registrados.</p> : filteredItems.length === 0 ? <p className="table-empty muted">No se encontraron resultados.</p> : (
+        <div className="catalog-filter"><input type="search" aria-label="Buscar estudiantes" placeholder="Buscar por nombre, carnet o teléfono" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} /></div>
+        {loading ? <p>Cargando estudiantes…</p> : items.length === 0 ? <p className="table-empty muted">{search ? 'No se encontraron estudiantes.' : 'No hay estudiantes registrados.'}</p> : (
           <div className="table-wrap"><table><thead><tr><th>Carnet</th><th>Nombre</th><th>Nacimiento</th><th>Teléfono</th><th>Acciones</th></tr></thead><tbody>
-            {filteredItems.map((item) => <tr key={item.idEstudiante}><td>{item.carnet}</td><td>{item.nombre} {item.apellido}</td><td>{item.fechaNacimiento}</td><td>{item.telefono || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-ghost" type="button" onClick={() => showHistory(item.idEstudiante)}>Historial</button></td></tr>)}
+            {items.map((item) => <tr key={item.idEstudiante}><td>{item.carnet}</td><td>{item.nombre} {item.apellido}</td><td>{item.fechaNacimiento}</td><td>{item.telefono || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-ghost" type="button" onClick={() => showHistory(item.idEstudiante)}>Historial</button></td></tr>)}
           </tbody></table></div>
         )}
       </div>
+      {total > 25 && <div className="form-actions panel">
+        <span className="muted">Página {page} de {Math.ceil(total / 25)} · {total} estudiantes</span>
+        <button type="button" className="button button-secondary" disabled={page === 1 || loading} onClick={() => setPage((v) => v - 1)}>Anterior</button>
+        <button type="button" className="button button-secondary" disabled={page * 25 >= total || loading} onClick={() => setPage((v) => v + 1)}>Siguiente</button>
+      </div>}
       {history && <div className="panel"><div className="section-heading compact"><div><h3>Historial académico — {history.nombreEstudiante}</h3><p className="muted">Carnet: {history.carnet}</p></div><button className="button button-secondary" type="button" onClick={() => setHistory(null)}>Cerrar</button></div>{history.sesiones?.length ? <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Materia</th><th>Tutor</th><th>Sesión</th><th>Asistencia</th><th>Tema</th></tr></thead><tbody>{history.sesiones.map((row) => <tr key={row.idSesion}><td>{row.fecha}</td><td>{row.nombreMateria}</td><td>{row.nombreTutor}</td><td><span className={`status status-${row.estadoSesion.toLowerCase()}`}>{row.estadoSesion}</span></td><td>{row.estadoAsistencia ? <span className={`status ${row.estadoAsistencia === 'Presente' ? 'status-completada' : 'status-cancelada'}`}>{row.estadoAsistencia}</span> : '—'}</td><td>{row.temaTrabajado || '—'}</td></tr>)}</tbody></table></div> : <p className="muted">El estudiante todavía no tiene sesiones en su historial.</p>}</div>}
     </div>
   )
