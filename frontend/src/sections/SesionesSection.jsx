@@ -10,6 +10,8 @@ export default function SesionesSection({ onUnauthorized }) {
   const [estudiantes, setEstudiantes] = useState([])
   const [tutores, setTutores] = useState([])
   const [form, setForm] = useState(EMPTY_FORM)
+  const [filterTutor, setFilterTutor] = useState('')
+  const [filterDate, setFilterDate] = useState(() => getLocalIsoDate())
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -30,6 +32,19 @@ export default function SesionesSection({ onUnauthorized }) {
     const tutor = tutores.find((item) => String(item.idTutor) === form.idTutor)
     return tutor?.materias || []
   }, [tutores, form.idTutor])
+
+  const filteredSessions = useMemo(() => {
+    if (!filterTutor) return []
+    return sesiones.filter((item) =>
+      String(item.idTutor) === filterTutor &&
+      (!filterDate || item.fecha === filterDate)
+    )
+  }, [sesiones, filterTutor, filterDate])
+
+  const bookedSessions = useMemo(
+    () => filteredSessions.filter((item) => item.estado !== 'Cancelada'),
+    [filteredSessions]
+  )
 
   function updateField(event) {
     const { name, value } = event.target
@@ -78,7 +93,15 @@ export default function SesionesSection({ onUnauthorized }) {
       </form>
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
-      <div className="panel table-panel">{loading ? <p>Cargando sesiones…</p> : sesiones.length === 0 ? <p className="muted">No hay sesiones registradas.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{sesiones.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}</div>
+      <div className="panel">
+        <div className="section-heading"><div><h3>Consultar horario por tutor</h3><p className="muted">Seleccione un tutor y una fecha para consultar las sesiones registradas. Los intervalos que no aparecen no garantizan disponibilidad fuera de su jornada laboral.</p></div></div>
+        <div className="form-grid payment-filters">
+          <label>Tutor<select value={filterTutor} onChange={(event) => setFilterTutor(event.target.value)}><option value="">Seleccione un tutor</option>{tutores.map((item) => <option key={item.idTutor} value={item.idTutor}>{item.nombre} {item.apellido}</option>)}</select></label>
+          <label>Fecha<input type="date" value={filterDate} onChange={(event) => setFilterDate(event.target.value)} /></label>
+        </div>
+        {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
+      </div>
+      <div className="panel table-panel">{loading ? <p>Cargando sesiones…</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas.</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : filteredSessions.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{filteredSessions.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}</div>
     </div>
   )
 }
