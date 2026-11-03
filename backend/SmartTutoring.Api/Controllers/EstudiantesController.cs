@@ -30,6 +30,34 @@ public class EstudiantesController : ControllerBase
         return Ok(estudiantes);
     }
 
+    [HttpGet("buscar")]
+    public async Task<ActionResult> Buscar([FromQuery] string? q = null,
+        [FromQuery] int pagina = 1, [FromQuery] int tamanio = 25)
+    {
+        if (pagina < 1 || tamanio < 1 || tamanio > 100 || q?.Length > 100)
+            return BadRequest(new { mensaje = "Parámetros de búsqueda inválidos." });
+
+        var query = _context.Estudiantes.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            var patron = "%" + q.Trim().Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
+            query = query.Where(e =>
+                EF.Functions.ILike(e.Nombre + " " + e.Apellido, patron, "\\") ||
+                EF.Functions.ILike(e.Carnet, patron, "\\") ||
+                (e.Telefono != null && EF.Functions.ILike(e.Telefono, patron, "\\")));
+        }
+
+        var total = await query.CountAsync();
+        var items = await query.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre).ThenBy(e => e.IdEstudiante)
+            .Skip((pagina - 1) * tamanio).Take(tamanio)
+            .Select(e => new EstudianteDto
+            {
+                IdEstudiante = e.IdEstudiante, Nombre = e.Nombre, Apellido = e.Apellido,
+                FechaNacimiento = e.FechaNacimiento, Carnet = e.Carnet, Telefono = e.Telefono
+            }).ToListAsync();
+        return Ok(new { items, total, pagina, tamanio });
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<EstudianteDto>> ObtenerPorId(int id)
     {
