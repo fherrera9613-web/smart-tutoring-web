@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { api, ApiError } from '../services/api.js'
+import smartTutoringLogo from '../assets/smart-tutoring-logo.svg'
 
 function ThemeIcon({ theme }) {
   return theme === 'dark' ? (
@@ -59,7 +60,7 @@ export default function Login({ onLogin, theme, onToggleTheme }) {
           <ThemeIcon theme={theme} />
         </button>
 
-        <div className="brand-mark" aria-hidden="true">ST</div>
+        <img className="brand-logo brand-logo-login" src={smartTutoringLogo} alt="Logo de SMART Tutoring Center" />
         <p className="eyebrow">SMART Tutoring Center</p>
         <h1 id="login-title">Acceso al sistema</h1>
         <p className="muted">
