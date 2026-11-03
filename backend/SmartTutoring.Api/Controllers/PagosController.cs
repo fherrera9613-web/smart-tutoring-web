@@ -48,8 +48,9 @@ public class PagosController : ControllerBase
         var pagosMesQuery = _context.Pagos.Where(p => p.FechaPago >= inicioMes && p.FechaPago < inicioMesSiguiente);
         var ingresosMesActual = await pagosMesQuery.SumAsync(p => (decimal?)p.Monto) ?? 0m;
         var pagosMesActual = await pagosMesQuery.CountAsync();
-        var sesionesSinPago = await _context.SesionesTutoria.CountAsync(s =>
-            s.Estado != EstadosSesion.Cancelada && !_context.Pagos.Any(p => p.IdSesion == s.IdSesion));
+        var ahora = DateTime.UtcNow.AddHours(-6);
+        var horaActual = TimeOnly.FromDateTime(ahora);
+        var sesionesSinPago = await SesionesPendientesQuery(hoy, horaActual).CountAsync();
 
         var pagosHistoricos = await _context.Pagos
             .AsNoTracking()
@@ -78,6 +79,58 @@ public class PagosController : ControllerBase
             ingresosPorMes
         });
     }
+
+    // Paginación en servidor: evita cargar todo el historial de sesiones para cobrar.
+    [HttpGet("pendientes")]
+    public async Task<ActionResult> ObtenerPendientes(
+        [FromQuery] int? idEstudiante = null,
+        [FromQuery] string? buscar = null,
+        [FromQuery] int pagina = 1,
+        [FromQuery] int tamanio = 20)
+    {
+        if (pagina < 1 || tamanio < 1 || tamanio > 100)
+            return BadRequest(new { mensaje = "La página debe ser positiva y el tamaño entre 1 y 100." });
+
+        var ahora = DateTime.UtcNow.AddHours(-6);
+        var fecha = DateOnly.FromDateTime(ahora);
+        var hora = TimeOnly.FromDateTime(ahora);
+        var query = SesionesPendientesQuery(fecha, hora);
+        if (idEstudiante.HasValue)
+            query = query.Where(s => s.IdEstudiante == idEstudiante.Value);
+
+        if (!string.IsNullOrWhiteSpace(buscar))
+        {
+            var termino = buscar.Trim();
+            if (termino.Length > 100)
+                return BadRequest(new { mensaje = "La búsqueda no debe superar 100 caracteres." });
+            var patron = "%" + termino.Replace("\\", "\\\\").Replace("%", "\\%").Replace("_", "\\_") + "%";
+            query = query.Where(s =>
+                EF.Functions.ILike(s.Estudiante.Nombre + " " + s.Estudiante.Apellido, patron, "\\") ||
+                EF.Functions.ILike(s.Estudiante.Carnet, patron, "\\") ||
+                EF.Functions.ILike(s.Materia.NombreMateria, patron, "\\"));
+        }
+
+        var total = await query.CountAsync();
+        var items = await query
+            .OrderBy(s => s.Fecha).ThenBy(s => s.HoraInicio).ThenBy(s => s.IdSesion)
+            .Skip((pagina - 1) * tamanio).Take(tamanio)
+            .Select(s => new
+            {
+                s.IdSesion, s.IdEstudiante, s.Fecha, s.HoraInicio, s.HoraFin,
+                nombreEstudiante = s.Estudiante.Nombre + " " + s.Estudiante.Apellido,
+                s.Estudiante.Carnet,
+                s.Materia.NombreMateria,
+                nombreTutor = s.Tutor.Nombre + " " + s.Tutor.Apellido
+            }).ToListAsync();
+
+        return Ok(new { items, total, pagina, tamanio });
+    }
+
+    private IQueryable<SesionTutoria> SesionesPendientesQuery(DateOnly fecha, TimeOnly hora) =>
+        _context.SesionesTutoria.AsNoTracking().Where(s =>
+            s.Estado != EstadosSesion.Cancelada &&
+            (s.Fecha < fecha || (s.Fecha == fecha && s.HoraFin <= hora)) &&
+            !_context.Pagos.Any(p => p.IdSesion == s.IdSesion));
 
     [HttpPost]
     public async Task<ActionResult<PagoDto>> Crear(CrearPagoDto dto)
