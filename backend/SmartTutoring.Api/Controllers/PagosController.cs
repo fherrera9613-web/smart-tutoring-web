@@ -1,3 +1,4 @@
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -131,6 +132,54 @@ public class PagosController : ControllerBase
             s.Estado != EstadosSesion.Cancelada &&
             (s.Fecha < fecha || (s.Fecha == fecha && s.HoraFin <= hora)) &&
             !_context.Pagos.Any(p => p.IdSesion == s.IdSesion));
+
+    // Exportación acotada por período, procesada en streaming para evitar grandes listas en memoria.
+    [HttpGet("reporte.csv")]
+    public async Task<IActionResult> ExportarReporte([FromQuery] DateOnly desde, [FromQuery] DateOnly hasta)
+    {
+        if (desde == default || hasta == default || desde > hasta || hasta.DayNumber - desde.DayNumber > 366)
+            return BadRequest(new { mensaje = "Indique un período válido de hasta 366 días." });
+
+        Response.ContentType = "text/csv; charset=utf-8";
+        Response.Headers.ContentDisposition = "attachment; filename=\"smart-tutoring-pagos.csv\"";
+        await using var writer = new StreamWriter(Response.Body, new UTF8Encoding(true), 4096, leaveOpen: true);
+        await writer.WriteLineAsync("Comprobante,Fecha de pago,Estudiante,Materia,Tutor,Fecha de sesión,Método,Monto C$");
+
+        var query = _context.Pagos.AsNoTracking()
+            .Where(p => p.FechaPago >= desde && p.FechaPago <= hasta)
+            .OrderBy(p => p.FechaPago).ThenBy(p => p.IdPago)
+            .Select(p => new
+            {
+                p.IdPago, p.FechaPago, Estudiante = p.Estudiante.Nombre + " " + p.Estudiante.Apellido,
+                Materia = p.Sesion != null ? p.Sesion.Materia.NombreMateria : p.Concepto,
+                Tutor = p.Sesion != null ? p.Sesion.Tutor.Nombre + " " + p.Sesion.Tutor.Apellido : "",
+                FechaSesion = p.Sesion != null ? (DateOnly?)p.Sesion.Fecha : null,
+                p.MetodoPago, p.Monto
+            });
+
+        await foreach (var pago in query.AsAsyncEnumerable().WithCancellation(HttpContext.RequestAborted))
+        {
+            var valores = new[]
+            {
+                pago.IdPago.ToString(), pago.FechaPago.ToString("yyyy-MM-dd"),
+                pago.Estudiante, pago.Materia ?? "", pago.Tutor,
+                pago.FechaSesion?.ToString("yyyy-MM-dd") ?? "", pago.MetodoPago,
+                pago.Monto.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+            };
+            await writer.WriteLineAsync(string.Join(",", valores.Select(EscapeCsv)));
+        }
+        await writer.FlushAsync();
+        return new EmptyResult();
+    }
+
+    private static string EscapeCsv(string? value)
+    {
+        var texto = value ?? string.Empty;
+        // Neutralizar fórmulas cuando el archivo se abra en un programa de hojas de cálculo.
+        if (texto.Length > 0 && "=+-@\\t\\r".Contains(texto[0]))
+            texto = "'" + texto;
+        return "\"" + texto.Replace("\"", "\"\"") + "\"";
+    }
 
     [HttpPost]
     public async Task<ActionResult<PagoDto>> Crear(CrearPagoDto dto)
