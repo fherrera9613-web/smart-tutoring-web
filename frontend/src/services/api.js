@@ -110,6 +110,7 @@ export const api = {
   },
   tutores: {
     listar: () => request('/api/tutores'),
+    miPerfil: () => request('/api/tutores/mi-perfil'),
     obtener: (id) => request(`/api/tutores/${id}`),
     crear: (data) => request('/api/tutores', { method: 'POST', body: data }),
     actualizar: (id, data) => request(`/api/tutores/${id}`, { method: 'PUT', body: data }),
