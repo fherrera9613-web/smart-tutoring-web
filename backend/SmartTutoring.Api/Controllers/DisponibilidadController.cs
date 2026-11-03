@@ -39,6 +39,56 @@ public class DisponibilidadController : ControllerBase
         return Ok(new { configurado = horarios.Count > 0, horarios, bloqueos });
     }
 
+    [HttpGet("libres")]
+    public async Task<ActionResult> ConsultarEspaciosLibres(int idTutor, [FromQuery] DateOnly fecha)
+    {
+        if (!await _context.Tutores.AnyAsync(t => t.IdTutor == idTutor))
+            return NotFound(new { mensaje = "Tutor no encontrado." });
+
+        var horas = await _context.HorariosTutor.AsNoTracking()
+            .Where(h => h.IdTutor == idTutor && h.DiaSemana == (int)fecha.DayOfWeek)
+            .OrderBy(h => h.HoraInicio).Select(h => new { inicio = h.HoraInicio, fin = h.HoraFin })
+            .ToListAsync();
+        var configurado = await _context.HorariosTutor.AnyAsync(h => h.IdTutor == idTutor);
+
+        var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-6));
+        if (fecha < hoy)
+            return Ok(new { configurado, intervalos = Array.Empty<object>() });
+
+        var sesiones = await _context.SesionesTutoria.AsNoTracking()
+            .Where(s => s.IdTutor == idTutor && s.Fecha == fecha && s.Estado != EstadosSesion.Cancelada)
+            .Select(s => new { inicio = s.HoraInicio, fin = s.HoraFin })
+            .ToListAsync();
+        var bloqueos = await _context.BloqueosTutor.AsNoTracking()
+            .Where(b => b.IdTutor == idTutor && b.Fecha == fecha)
+            .Select(b => new { inicio = b.HoraInicio, fin = b.HoraFin }).ToListAsync();
+
+        var ocupados = sesiones.Concat(bloqueos)
+            .OrderBy(i => i.inicio).ThenBy(i => i.fin).ToList();
+        var libres = new List<object>();
+        var ahora = DateTime.UtcNow.AddHours(-6);
+        var horaMinima = fecha == hoy
+            ? TimeOnly.FromDateTime(ahora).AddMinutes(15 - (ahora.Minute % 15))
+            : TimeOnly.MinValue;
+
+        foreach (var franja in horas)
+        {
+            var cursor = franja.inicio > horaMinima ? franja.inicio : horaMinima;
+            foreach (var ocupado in ocupados)
+            {
+                if (ocupado.fin <= cursor || ocupado.inicio >= franja.fin) continue;
+                if (ocupado.inicio > cursor)
+                    libres.Add(new { horaInicio = cursor, horaFin = ocupado.inicio });
+                if (ocupado.fin > cursor) cursor = ocupado.fin;
+                if (cursor >= franja.fin) break;
+            }
+            if (cursor < franja.fin)
+                libres.Add(new { horaInicio = cursor, horaFin = franja.fin });
+        }
+
+        return Ok(new { configurado, intervalos = libres });
+    }
+
     [HttpPut("horarios")]
     public async Task<IActionResult> GuardarHorarios(int idTutor, ActualizarHorariosTutorDto dto)
     {
