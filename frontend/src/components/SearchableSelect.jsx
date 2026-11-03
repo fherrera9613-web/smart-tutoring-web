@@ -43,7 +43,7 @@ export default function SearchableSelect({
         placeholder={placeholder}
         disabled={disabled}
         required={required}
-        onFocus={() => { setEditing(true); setQuery(''); setOpen(true) }}
+        onFocus={(event) => { setEditing(true); setQuery(selectedLabel); setOpen(true); event.currentTarget.select() }}
         onChange={(event) => {
           setQuery(event.target.value)
           setEditing(true)
