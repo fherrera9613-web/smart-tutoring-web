@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 const EMPTY_FORM = {
@@ -10,6 +11,7 @@ const EMPTY_FORM = {
 
 export default function UsuariosSection({ onUnauthorized }) {
   const [usuarios, setUsuarios] = useState([])
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(EMPTY_FORM)
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -30,6 +32,8 @@ export default function UsuariosSection({ onUnauthorized }) {
   }
 
   useEffect(() => { load() }, [])
+
+  const filteredItems = useMemo(() => usuarios.filter((item) => matchesSearch(search, item.correoElectronico, item.rol, item.activo ? 'Activo' : 'Inactivo')), [usuarios, search])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -106,9 +110,10 @@ export default function UsuariosSection({ onUnauthorized }) {
       {success && <div className="alert alert-success">{success}</div>}
 
       <div className="panel table-panel">
-        {loading ? <p>Cargando usuarios…</p> : (
+        <div className="catalog-filter"><input type="search" aria-label="Buscar usuarios" placeholder="Buscar por correo, rol o estado" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
+        {loading ? <p>Cargando usuarios…</p> : filteredItems.length === 0 ? <p className="table-empty muted">{usuarios.length === 0 ? 'No hay usuarios registrados.' : 'No se encontraron usuarios.'}</p> : (
           <div className="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead><tbody>
-            {usuarios.map((item) => (
+            {filteredItems.map((item) => (
               <tr key={item.idUsuario}>
                 <td>{item.correoElectronico}</td><td>{item.rol}</td><td><span className={item.activo ? 'status status-activo' : 'status status-inactivo'}>{item.activo ? 'Activo' : 'Inactivo'}</span></td><td>{item.fechaRegistro ? new Date(item.fechaRegistro).toLocaleString('es-NI') : '—'}</td>
                 <td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button>{item.activo && <button className="button button-small button-danger" type="button" onClick={() => deactivate(item.idUsuario)}>Desactivar</button>}</td>
