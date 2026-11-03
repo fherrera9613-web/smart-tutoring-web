@@ -1,9 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 export default function MisSesionesSection({ onUnauthorized }) {
   const [sesiones, setSesiones] = useState([])
+  const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
   const [attendance, setAttendance] = useState({ estadoAsistencia: 'Presente', observaciones: '' })
   const [tracking, setTracking] = useState({ temaTrabajado: '', observaciones: '' })
@@ -12,6 +14,8 @@ export default function MisSesionesSection({ onUnauthorized }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  const filteredSessions = useMemo(() => sesiones.filter((item) => matchesSearch(search, item.fecha, item.horaInicio, item.nombreEstudiante, item.nombreMateria, item.estado)), [sesiones, search])
 
   async function load() {
     setLoading(true)
@@ -129,9 +133,10 @@ export default function MisSesionesSection({ onUnauthorized }) {
       {success && <div className="alert alert-success">{success}</div>}
 
       <div className="panel table-panel">
-        {loading ? <p>Cargando sesiones…</p> : sesiones.length === 0 ? <p className="muted">No tiene sesiones asignadas.</p> : (
+        <div className="catalog-filter"><input type="search" aria-label="Buscar mis sesiones" placeholder="Buscar por estudiante, materia, fecha o estado" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
+        {loading ? <p>Cargando sesiones…</p> : sesiones.length === 0 ? <p className="muted">No tiene sesiones asignadas.</p> : filteredSessions.length === 0 ? <p className="table-empty muted">No se encontraron sesiones.</p> : (
           <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Materia</th><th>Estado</th><th></th></tr></thead><tbody>
-            {sesiones.map((item) => (
+            {filteredSessions.map((item) => (
               <tr key={item.idSesion}>
                 <td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td><button className="button button-small button-secondary" type="button" onClick={() => chooseSession(item)}>Ver detalle</button></td>
               </tr>
