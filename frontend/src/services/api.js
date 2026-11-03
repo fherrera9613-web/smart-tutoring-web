@@ -96,6 +96,7 @@ export const api = {
     actualizar: (id, data) => request(`/api/tutores/${id}`, { method: 'PUT', body: data }),
     asignarMateria: (idTutor, idMateria) => request(`/api/tutores/${idTutor}/materias/${idMateria}`, { method: 'POST' }),
     disponibilidad: (idTutor, fecha = '') => request(`/api/tutores/${idTutor}/disponibilidad${fecha ? `?fecha=${fecha}` : ''}`),
+    espaciosLibres: (idTutor, fecha) => request(`/api/tutores/${idTutor}/disponibilidad/libres?fecha=${encodeURIComponent(fecha)}`),
     guardarHorarios: (idTutor, horarios) => request(`/api/tutores/${idTutor}/disponibilidad/horarios`, { method: 'PUT', body: { horarios } }),
     bloquearHorario: (idTutor, datos) => request(`/api/tutores/${idTutor}/disponibilidad/bloqueos`, { method: 'POST', body: datos }),
     eliminarBloqueo: (idTutor, idBloqueo) => request(`/api/tutores/${idTutor}/disponibilidad/bloqueos/${idBloqueo}`, { method: 'DELETE' }),
