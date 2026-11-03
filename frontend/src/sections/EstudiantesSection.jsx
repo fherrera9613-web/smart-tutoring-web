@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 import { getLocalIsoDate } from '../utils/date.js'
 
@@ -10,6 +11,7 @@ const PHONE_PATTERN = '[0-9]{4}-?[0-9]{4}'
 
 export default function EstudiantesSection({ onUnauthorized }) {
   const [items, setItems] = useState([])
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(EMPTY_FORM)
   const [editingId, setEditingId] = useState(null)
   const [history, setHistory] = useState(null)
@@ -25,6 +27,8 @@ export default function EstudiantesSection({ onUnauthorized }) {
     finally { setLoading(false) }
   }
   useEffect(() => { load() }, [])
+
+  const filteredItems = useMemo(() => items.filter((item) => matchesSearch(search, item.nombre, item.apellido, item.carnet, item.telefono)), [items, search])
 
   function updateField(event) {
     const { name } = event.target
@@ -74,9 +78,10 @@ export default function EstudiantesSection({ onUnauthorized }) {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
       <div className="panel table-panel">
-        {loading ? <p>Cargando estudiantes…</p> : items.length === 0 ? <p className="muted">No hay estudiantes registrados.</p> : (
+        <div className="catalog-filter"><input type="search" aria-label="Buscar estudiantes" placeholder="Buscar por nombre, carnet o teléfono" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
+        {loading ? <p>Cargando estudiantes…</p> : items.length === 0 ? <p className="muted">No hay estudiantes registrados.</p> : filteredItems.length === 0 ? <p className="table-empty muted">No se encontraron resultados.</p> : (
           <div className="table-wrap"><table><thead><tr><th>Carnet</th><th>Nombre</th><th>Nacimiento</th><th>Teléfono</th><th>Acciones</th></tr></thead><tbody>
-            {items.map((item) => <tr key={item.idEstudiante}><td>{item.carnet}</td><td>{item.nombre} {item.apellido}</td><td>{item.fechaNacimiento}</td><td>{item.telefono || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-ghost" type="button" onClick={() => showHistory(item.idEstudiante)}>Historial</button></td></tr>)}
+            {filteredItems.map((item) => <tr key={item.idEstudiante}><td>{item.carnet}</td><td>{item.nombre} {item.apellido}</td><td>{item.fechaNacimiento}</td><td>{item.telefono || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-ghost" type="button" onClick={() => showHistory(item.idEstudiante)}>Historial</button></td></tr>)}
           </tbody></table></div>
         )}
       </div>
