@@ -102,6 +102,7 @@ export const api = {
   login: (correoElectronico, password) => request('/api/auth/login', { method: 'POST', auth: false, body: { correoElectronico, password } }),
   estudiantes: {
     listar: () => request('/api/estudiantes'),
+    buscar: (q = '', pagina = 1, tamanio = 25) => request(`/api/estudiantes/buscar?${new URLSearchParams({ q, pagina: String(pagina), tamanio: String(tamanio) })}`),
     obtener: (id) => request(`/api/estudiantes/${id}`),
     crear: (data) => request('/api/estudiantes', { method: 'POST', body: data }),
     actualizar: (id, data) => request(`/api/estudiantes/${id}`, { method: 'PUT', body: data }),
