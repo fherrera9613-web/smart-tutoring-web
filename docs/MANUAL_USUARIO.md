@@ -24,18 +24,17 @@ En **Tutores**, el personal autorizado registra tutores, sus especialidades y a�
 
 ### Configurar jornada
 
-1. En **Disponibilidad y jornada de tutores**, busque y seleccione un tutor.
-2. Pulse **Agregar intervalo** y establezca día, hora inicial y hora final.
-3. Repita para los días y bloques laborales confirmados por el tutor.
-4. Pulse **Guardar jornada**.
+**Tutor:** inicie sesión con su propia cuenta y seleccione **Mi disponibilidad** en el menú lateral. Pulse **Agregar intervalo** para configurar el día y las horas en que puede impartir tutorías, repitiendo la operación cuando tenga distintos tramos durante un mismo día. Finalmente, pulse **Guardar disponibilidad**.
 
-Los intervalos semanales no pueden superponerse y los cambios no deben dejar sesiones futuras ya reservadas fuera de la jornada.
+**Administrador o Personal Administrativo:** en **Tutores → Supervisión de disponibilidad**, busque al docente correspondiente. Puede consultar su jornada y realizar correcciones cuando sea necesario utilizando el mismo editor.
+
+Los intervalos semanales no pueden superponerse y los cambios no deben dejar sesiones futuras ya reservadas fuera de la jornada. Un tutor solamente puede editar sus propios datos de disponibilidad; la API verifica esta condición independientemente del identificador indicado en la solicitud.
 
 **Importante:** un tutor sin jornada configurada no debe interpretarse como disponible todo el día; todavía falta registrar su jornada real.
 
 ### Registrar una excepción
 
-Seleccione tutor, fecha, horas y motivo opcional en **Bloquear un horario**. Los bloqueos se rechazan si existe una sesión activa superpuesta; primero debe reprogramarla o cancelarla conforme a las reglas del sistema.
+Desde **Mi disponibilidad**, el tutor puede seleccionar fecha, horas y motivo opcional en **Ausencias y excepciones**. El personal administrativo también puede gestionar esos bloqueos desde la supervisión. Los bloqueos se rechazan si existe una sesión activa superpuesta; primero debe reprogramarla o cancelarla conforme a las reglas del sistema.
 
 ## 4. Sesiones
 
