@@ -2,6 +2,23 @@
 
 Sistema web de gestión académica y administrativa desarrollado para **SMART Tutoring Center** como proyecto de la asignatura **Diseño de Sistemas en Internet**.
 
+## Mejoras operativas (noviembre de 2026)
+
+- Configuración de jornadas semanales y bloqueos de tutores, con validación de disponibilidad desde la API.
+- Consulta de franjas libres y selección de horario para preparar un agendamiento.
+- Panel de sesiones finalizadas pendientes de cobro, paginado y con búsqueda desde PostgreSQL.
+- Consulta paginada de agenda por tutor y fecha; catálogos de estudiantes y usuarios paginados desde el servidor.
+- Exportación CSV de pagos por período.
+- Limitación de solicitudes al login y documentación OpenAPI desactivada para el despliegue público de Render.
+- CI con pruebas automatizadas de utilidades y arranque de API contra PostgreSQL 17, incluyendo migraciones.
+
+Documentos complementarios:
+
+- [Manual de usuario](docs/MANUAL_USUARIO.md)
+- [Operación técnica, pruebas y asuntos pendientes](docs/OPERACION_Y_VALIDACION.md)
+
+**Importante:** las jornadas reales de los tutores deben ser configuradas por el centro; no se han supuesto horarios predeterminados. Las políticas sobre faltas, cobros excepcionales y recuperación de respaldos requieren definición y validación institucional.
+
 ## Objetivo
 
 Digitalizar procesos básicos del centro de tutorías mediante una aplicación web con separación estricta entre frontend, backend y persistencia. El sistema permite administrar estudiantes, tutores, materias, sesiones, asistencia, seguimiento académico, pagos y usuarios con control de acceso por roles.
