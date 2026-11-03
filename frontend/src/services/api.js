@@ -80,6 +80,24 @@ async function request(path, options = {}) {
   return data
 }
 
+async function downloadAuthorizedCsv(path) {
+  const session = getSession()
+  if (!session?.token) throw new ApiError('La sesión ha expirado. Inicie sesión nuevamente.', 401)
+  let response
+  try {
+    response = await fetch(`${API_URL}${path}`, {
+      headers: { Authorization: `Bearer ${session.token}`, Accept: 'text/csv' },
+    })
+  } catch {
+    throw new ApiError('No fue posible conectarse con el servidor para exportar el reporte.', 0)
+  }
+  if (!response.ok) {
+    if (response.status === 401) clearSession()
+    throw new ApiError(`No fue posible generar el reporte (HTTP ${response.status}).`, response.status)
+  }
+  return response.blob()
+}
+
 export const api = {
   login: (correoElectronico, password) => request('/api/auth/login', { method: 'POST', auth: false, body: { correoElectronico, password } }),
   estudiantes: {
@@ -125,6 +143,7 @@ export const api = {
     pendientes: (pagina = 1, tamanio = 20, buscar = '', idEstudiante = '') => request(`/api/pagos/pendientes?${new URLSearchParams({ pagina: String(pagina), tamanio: String(tamanio), ...(buscar.trim() ? { buscar: buscar.trim() } : {}), ...(idEstudiante ? { idEstudiante: String(idEstudiante) } : {}) })}`),
     listar: () => request('/api/pagos'),
     resumen: () => request('/api/pagos/resumen'),
+    exportarCsv: (desde, hasta) => downloadAuthorizedCsv(`/api/pagos/reporte.csv?${new URLSearchParams({ desde, hasta })}`),
     crear: (data) => request('/api/pagos', { method: 'POST', body: data }),
     porEstudiante: (idEstudiante) => request(`/api/pagos/estudiante/${idEstudiante}`),
   },
