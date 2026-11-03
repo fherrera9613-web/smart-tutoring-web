@@ -53,6 +53,38 @@ namespace SmartTutoring.Api.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.BloqueoTutor", b =>
+                {
+                    b.Property<int>("IdBloqueo").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdBloqueo"));
+                    b.Property<DateOnly>("Fecha").HasColumnType("date");
+                    b.Property<TimeOnly>("HoraFin").HasColumnType("time without time zone");
+                    b.Property<TimeOnly>("HoraInicio").HasColumnType("time without time zone");
+                    b.Property<int>("IdTutor").HasColumnType("integer");
+                    b.Property<string>("Motivo").HasMaxLength(150).HasColumnType("character varying(150)");
+                    b.HasKey("IdBloqueo");
+                    b.HasIndex("IdTutor", "Fecha");
+                    b.ToTable("BloqueosTutor", t =>
+                        t.HasCheckConstraint("CK_BloqueosTutor_Horas", "\"HoraFin\" > \"HoraInicio\""));
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.HorarioTutor", b =>
+                {
+                    b.Property<int>("IdHorario").ValueGeneratedOnAdd().HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdHorario"));
+                    b.Property<int>("DiaSemana").HasColumnType("integer");
+                    b.Property<TimeOnly>("HoraFin").HasColumnType("time without time zone");
+                    b.Property<TimeOnly>("HoraInicio").HasColumnType("time without time zone");
+                    b.Property<int>("IdTutor").HasColumnType("integer");
+                    b.HasKey("IdHorario");
+                    b.HasIndex("IdTutor", "DiaSemana");
+                    b.ToTable("HorariosTutor", t =>
+                        {
+                            t.HasCheckConstraint("CK_HorariosTutor_Dia", "\"DiaSemana\" BETWEEN 0 AND 6");
+                            t.HasCheckConstraint("CK_HorariosTutor_Horas", "\"HoraFin\" > \"HoraInicio\"");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Estudiante", b =>
                 {
                     b.Property<int>("IdEstudiante")
@@ -340,6 +372,20 @@ namespace SmartTutoring.Api.Migrations
                         .IsRequired();
 
                     b.Navigation("Sesion");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.BloqueoTutor", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
+                        .WithMany().HasForeignKey("IdTutor").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.HorarioTutor", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
+                        .WithMany().HasForeignKey("IdTutor").OnDelete(DeleteBehavior.Cascade).IsRequired();
+                    b.Navigation("Tutor");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
