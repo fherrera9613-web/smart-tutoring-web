@@ -122,8 +122,7 @@ public class DisponibilidadController : ControllerBase
             }
         }
 
-        // No permitir que una configuración deje fuera una sesión futura ya confirmada.
-        if (ordenados.Count > 0)
+        // La jornada no puede vaciarse ni reducirse si deja reservas futuras fuera de horario.
         {
             var hoy = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-6));
             var proximas = await _context.SesionesTutoria.AsNoTracking()
