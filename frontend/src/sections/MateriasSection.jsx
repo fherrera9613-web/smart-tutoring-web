@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { api } from '../services/api.js'
+import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 const EMPTY_FORM = { nombreMateria: '', descripcion: '', nivel: '' }
@@ -7,6 +8,7 @@ const SUBJECT_PATTERN = '[A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9 .+#()/\\-]+'
 
 export default function MateriasSection({ onUnauthorized }) {
   const [items, setItems] = useState([])
+  const [search, setSearch] = useState('')
   const [form, setForm] = useState(EMPTY_FORM)
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -21,6 +23,8 @@ export default function MateriasSection({ onUnauthorized }) {
     finally { setLoading(false) }
   }
   useEffect(() => { load() }, [])
+
+  const filteredItems = useMemo(() => items.filter((item) => matchesSearch(search, item.nombreMateria, item.nivel, item.descripcion)), [items, search])
 
   function updateField(event) { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value })) }
   function startEdit(item) { setEditingId(item.idMateria); setForm({ nombreMateria: item.nombreMateria || '', descripcion: item.descripcion || '', nivel: item.nivel || '' }); setError(''); setSuccess('') }
@@ -59,7 +63,8 @@ export default function MateriasSection({ onUnauthorized }) {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
       <div className="panel table-panel">
-        {loading ? <p>Cargando materias…</p> : items.length === 0 ? <p className="muted">No hay materias registradas.</p> : <div className="table-wrap"><table><thead><tr><th>Materia</th><th>Nivel</th><th>Descripción</th><th>Acciones</th></tr></thead><tbody>{items.map((item) => <tr key={item.idMateria}><td>{item.nombreMateria}</td><td>{item.nivel || '—'}</td><td>{item.descripcion || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-danger" type="button" onClick={() => deleteSubject(item)}>Eliminar</button></td></tr>)}</tbody></table></div>}
+        <div className="catalog-filter"><input type="search" aria-label="Buscar materias" placeholder="Buscar por materia, nivel o descripción" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
+        {loading ? <p>Cargando materias…</p> : items.length === 0 ? <p className="muted">No hay materias registradas.</p> : filteredItems.length === 0 ? <p className="table-empty muted">No se encontraron resultados.</p> : <div className="table-wrap"><table><thead><tr><th>Materia</th><th>Nivel</th><th>Descripción</th><th>Acciones</th></tr></thead><tbody>{filteredItems.map((item) => <tr key={item.idMateria}><td>{item.nombreMateria}</td><td>{item.nivel || '—'}</td><td>{item.descripcion || '—'}</td><td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button><button className="button button-small button-danger" type="button" onClick={() => deleteSubject(item)}>Eliminar</button></td></tr>)}</tbody></table></div>}
       </div>
     </div>
   )
