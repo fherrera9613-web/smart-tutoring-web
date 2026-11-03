@@ -12,7 +12,8 @@ function hasSessionEnded(session, centerNow) {
   if (!session.fecha || !session.horaFin) return false
   if (session.fecha < centerNow.date) return true
   if (session.fecha > centerNow.date) return false
-  return session.horaFin.slice(0, 8).padEnd(8, '0') <= centerNow.time
+  const horaFin = session.horaFin.length === 5 ? `${session.horaFin}:00` : session.horaFin.slice(0, 8)
+  return horaFin <= centerNow.time
 }
 function escapeHtml(value) { return String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;') }
 
