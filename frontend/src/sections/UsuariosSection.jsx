@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../services/api.js'
-import { matchesSearch } from '../utils/search.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
 const EMPTY_FORM = {
@@ -12,6 +11,9 @@ const EMPTY_FORM = {
 export default function UsuariosSection({ onUnauthorized }) {
   const [usuarios, setUsuarios] = useState([])
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+  const [total, setTotal] = useState(0)
+  const requestId = useRef(0)
   const [form, setForm] = useState(EMPTY_FORM)
   const [editingId, setEditingId] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -23,7 +25,9 @@ export default function UsuariosSection({ onUnauthorized }) {
     setLoading(true)
     setError('')
     try {
-      setUsuarios(await api.usuarios.listar())
+      const currentRequest = ++requestId.current
+      const result = await api.usuarios.buscar(search, page)
+      if (currentRequest === requestId.current) { setUsuarios(result.items); setTotal(result.total) }
     } catch (err) {
       setError(resolveErrorMessage(err, onUnauthorized))
     } finally {
@@ -31,9 +35,10 @@ export default function UsuariosSection({ onUnauthorized }) {
     }
   }
 
-  useEffect(() => { load() }, [])
-
-  const filteredItems = useMemo(() => usuarios.filter((item) => matchesSearch(search, item.correoElectronico, item.rol, item.activo ? 'Activo' : 'Inactivo')), [usuarios, search])
+  useEffect(() => {
+    const timer = setTimeout(() => { load() }, 250)
+    return () => clearTimeout(timer)
+  }, [search, page])
 
   function updateField(event) {
     const { name, value } = event.target
@@ -110,10 +115,10 @@ export default function UsuariosSection({ onUnauthorized }) {
       {success && <div className="alert alert-success">{success}</div>}
 
       <div className="panel table-panel">
-        <div className="catalog-filter"><input type="search" aria-label="Buscar usuarios" placeholder="Buscar por correo, rol o estado" value={search} onChange={(event) => setSearch(event.target.value)} /></div>
-        {loading ? <p>Cargando usuarios…</p> : filteredItems.length === 0 ? <p className="table-empty muted">{usuarios.length === 0 ? 'No hay usuarios registrados.' : 'No se encontraron usuarios.'}</p> : (
+        <div className="catalog-filter"><input type="search" aria-label="Buscar usuarios" placeholder="Buscar por correo, rol o estado" value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} /></div>
+        {loading ? <p>Cargando usuarios…</p> : usuarios.length === 0 ? <p className="table-empty muted">{search ? 'No se encontraron usuarios.' : 'No hay usuarios registrados.'}</p> : (
           <div className="table-wrap"><table><thead><tr><th>Correo</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acciones</th></tr></thead><tbody>
-            {filteredItems.map((item) => (
+            {usuarios.map((item) => (
               <tr key={item.idUsuario}>
                 <td>{item.correoElectronico}</td><td>{item.rol}</td><td><span className={item.activo ? 'status status-activo' : 'status status-inactivo'}>{item.activo ? 'Activo' : 'Inactivo'}</span></td><td>{item.fechaRegistro ? new Date(item.fechaRegistro).toLocaleString('es-NI') : '—'}</td>
                 <td className="actions-cell"><button className="button button-small button-secondary" type="button" onClick={() => startEdit(item)}>Editar</button>{item.activo && <button className="button button-small button-danger" type="button" onClick={() => deactivate(item.idUsuario)}>Desactivar</button>}</td>
@@ -122,6 +127,11 @@ export default function UsuariosSection({ onUnauthorized }) {
           </tbody></table></div>
         )}
       </div>
+      {total > 25 && <div className="form-actions panel">
+        <span className="muted">Página {page} de {Math.ceil(total / 25)} · {total} usuarios</span>
+        <button className="button button-secondary" type="button" disabled={page === 1 || loading} onClick={() => setPage((v) => v - 1)}>Anterior</button>
+        <button className="button button-secondary" type="button" disabled={page * 25 >= total || loading} onClick={() => setPage((v) => v + 1)}>Siguiente</button>
+      </div>}
     </div>
   )
 }
