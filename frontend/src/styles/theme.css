@@ -5,28 +5,28 @@
 */
 
 :root {
-  --primary: #3658d4;
-  --primary-dark: #263d9f;
-  --primary-soft: #eef1ff;
-  --accent: #7c3aed;
-  --accent-soft: #f3e8ff;
-  --cyan: #0f8ca8;
-  --cyan-soft: #e8f8fb;
+  --primary: #2f55e7;
+  --primary-dark: #223da8;
+  --primary-soft: #edf0ff;
+  --accent: #8238f5;
+  --accent-soft: #f3e7ff;
+  --cyan: #078fae;
+  --cyan-soft: #e6f8fb;
   --surface: #ffffff;
   --surface-alt: #f8fafc;
-  --border: #dde4ef;
-  --text: #182033;
-  --muted: #697386;
-  --danger: #c2413d;
+  --border: #dbe3f0;
+  --text: #172033;
+  --muted: #657084;
+  --danger: #cb3e39;
   --danger-soft: #fff0ef;
-  --success: #16815d;
-  --success-soft: #eaf8f2;
-  --warning: #c17a12;
-  --warning-soft: #fff6e8;
-  --shadow: 0 12px 30px rgba(30, 48, 88, .08);
+  --success: #0f8a60;
+  --success-soft: #e8f8f1;
+  --warning: #cb7c08;
+  --warning-soft: #fff5e5;
+  --shadow: 0 12px 30px rgba(30, 48, 88, .09);
 }
 
-body { background: #f3f6fb; }
+body { background: #f2f5fb; }
 
 /* Marca: dos colores planos, sin degradado */
 .brand-mark {
@@ -35,16 +35,16 @@ body { background: #f3f6fb; }
 }
 
 .sidebar {
-  background: #18223e;
+  background: #17213e;
 }
 
 .sidebar-brand span,
-.user-summary span { color: #b8c5df; }
+.user-summary span { color: #b9c6e2; }
 
 /* Navegación activa: bloque sólido + acento lateral */
 .nav-item.active {
   position: relative;
-  background: #334a95;
+  background: #314a9f;
   box-shadow: none;
 }
 
@@ -66,8 +66,8 @@ body { background: #f3f6fb; }
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #8ea2ef;
-  box-shadow: 0 0 0 3px rgba(54, 88, 212, .12);
+  border-color: #849af0;
+  box-shadow: 0 0 0 3px rgba(47, 85, 231, .13);
 }
 
 /* Controles de tema */
@@ -85,7 +85,7 @@ textarea:focus {
   box-shadow: 0 4px 12px rgba(15,23,42,.05);
   transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-.theme-toggle:hover { transform: translateY(-1px); background: var(--primary-soft); border-color: #b9c5ee; }
+.theme-toggle:hover { transform: translateY(-1px); background: var(--primary-soft); border-color: #b5c2ef; }
 .theme-toggle svg { width: 18px; height: 18px; }
 .login-panel { position: relative; }
 .login-theme-toggle { position: absolute; top: 18px; right: 18px; }
@@ -121,7 +121,7 @@ textarea:focus {
   border-radius: 0 0 13px 0;
   clip-path: polygon(58% 0, 100% 0, 100% 100%, 0 100%);
   background: currentColor;
-  opacity: .095;
+  opacity: .105;
   pointer-events: none;
 }
 .metric-card-blue { color: var(--primary); }
@@ -140,9 +140,9 @@ textarea:focus {
 /* Gráfico mensual delgado */
 .monthly-chart {
   gap: 22px;
-  background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, rgba(105, 115, 134, .11) 40px);
+  background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, rgba(101, 112, 132, .11) 40px);
 }
-.monthly-track { background: transparent; border-bottom: 1px solid #d4dbe7; border-radius: 0; overflow: visible; }
+.monthly-track { background: transparent; border-bottom: 1px solid #d3dbe8; border-radius: 0; overflow: visible; }
 .monthly-bar {
   left: 50%;
   right: auto;
@@ -150,48 +150,48 @@ textarea:focus {
   transform: translateX(-50%);
   border-radius: 4px 4px 1px 1px;
   background: var(--primary);
-  box-shadow: 0 3px 8px rgba(54,88,212,.14);
+  box-shadow: 0 3px 8px rgba(47,85,231,.16);
 }
 .monthly-column:hover .monthly-bar {
   transform: translateX(-50%) scaleX(1.12);
   filter: brightness(1.06);
-  box-shadow: 0 5px 11px rgba(54,88,212,.20);
+  box-shadow: 0 5px 11px rgba(47,85,231,.22);
 }
-.monthly-column:last-child .monthly-bar { background: var(--accent); box-shadow: 0 3px 8px rgba(124,58,237,.18); }
+.monthly-column:last-child .monthly-bar { background: var(--accent); box-shadow: 0 3px 8px rgba(130,56,245,.20); }
 .monthly-column:last-child .monthly-label { color: var(--accent); font-weight: 800; }
 
 /* Tema oscuro */
 :root[data-theme='dark'] {
-  --primary: #91a3ff;
-  --primary-dark: #cbd3ff;
-  --primary-soft: #242d55;
-  --accent: #bd91ff;
-  --accent-soft: #35254d;
-  --cyan: #66d2e8;
-  --cyan-soft: #173845;
-  --surface: #161d2f;
-  --surface-alt: #1b2438;
-  --border: #2d3851;
-  --text: #edf2ff;
-  --muted: #a7b1c4;
-  --danger: #ff8b85;
-  --danger-soft: #402426;
-  --success: #64d6aa;
-  --success-soft: #17372e;
-  --warning: #f0bd66;
-  --warning-soft: #3d3020;
-  --shadow: 0 12px 30px rgba(0, 0, 0, .25);
+  --primary: #8ea4ff;
+  --primary-dark: #cbd4ff;
+  --primary-soft: #232d59;
+  --accent: #c18fff;
+  --accent-soft: #382450;
+  --cyan: #63d8ec;
+  --cyan-soft: #153946;
+  --surface: #151d30;
+  --surface-alt: #1a2439;
+  --border: #2c3852;
+  --text: #eef2ff;
+  --muted: #a8b2c6;
+  --danger: #ff8780;
+  --danger-soft: #412326;
+  --success: #5fdca9;
+  --success-soft: #15392e;
+  --warning: #f5bd5f;
+  --warning-soft: #3e301e;
+  --shadow: 0 12px 30px rgba(0, 0, 0, .26);
 }
-:root[data-theme='dark'] body { background: #0f1524; color: var(--text); }
-:root[data-theme='dark'] .login-page { background: #101728; }
+:root[data-theme='dark'] body { background: #0e1424; color: var(--text); }
+:root[data-theme='dark'] .login-page { background: #0f1628; }
 :root[data-theme='dark'] .login-panel,
 :root[data-theme='dark'] .panel,
 :root[data-theme='dark'] .metric-card,
 :root[data-theme='dark'] .subpanel { background: var(--surface); border-color: var(--border); box-shadow: 0 6px 18px rgba(0,0,0,.18); }
-:root[data-theme='dark'] .sidebar { background: #11182a; }
-:root[data-theme='dark'] .nav-item.active { background: #33446f; }
-:root[data-theme='dark'] .brand-mark { background: #6578d8; box-shadow: inset -9px 0 0 #9d6bea; }
-:root[data-theme='dark'] .topbar { background: rgba(18, 25, 42, .94); border-bottom-color: var(--border); }
+:root[data-theme='dark'] .sidebar { background: #10172b; }
+:root[data-theme='dark'] .nav-item.active { background: #304474; }
+:root[data-theme='dark'] .brand-mark { background: #6279df; box-shadow: inset -9px 0 0 #a36ff2; }
+:root[data-theme='dark'] .topbar { background: rgba(17, 24, 42, .95); border-bottom-color: var(--border); }
 :root[data-theme='dark'] label,
 :root[data-theme='dark'] .bar-label-row span,
 :root[data-theme='dark'] .monthly-value,
@@ -200,32 +200,32 @@ textarea:focus {
 :root[data-theme='dark'] td { color: var(--text); }
 :root[data-theme='dark'] input,
 :root[data-theme='dark'] select,
-:root[data-theme='dark'] textarea { background: #111827; color: var(--text); border-color: #35415c; }
+:root[data-theme='dark'] textarea { background: #101827; color: var(--text); border-color: #34415d; }
 :root[data-theme='dark'] input::placeholder,
 :root[data-theme='dark'] textarea::placeholder { color: #748198; }
 :root[data-theme='dark'] input:focus,
 :root[data-theme='dark'] select:focus,
-:root[data-theme='dark'] textarea:focus { border-color: #7f91e8; box-shadow: 0 0 0 3px rgba(145,163,255,.16); }
-:root[data-theme='dark'] .button-secondary { background: #252f44; color: #e5eaf5; }
-:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303b52; }
-:root[data-theme='dark'] th { background: #1d2639; color: #b7c1d3; }
+:root[data-theme='dark'] textarea:focus { border-color: #7c91eb; box-shadow: 0 0 0 3px rgba(142,164,255,.17); }
+:root[data-theme='dark'] .button-secondary { background: #252f45; color: #e6ebf6; }
+:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303c54; }
+:root[data-theme='dark'] th { background: #1c263a; color: #b9c3d5; }
 :root[data-theme='dark'] th,
-:root[data-theme='dark'] td { border-bottom-color: #2a344a; }
-:root[data-theme='dark'] tbody tr:hover { background: #1b2437; }
+:root[data-theme='dark'] td { border-bottom-color: #29354b; }
+:root[data-theme='dark'] tbody tr:hover { background: #1a2438; }
 :root[data-theme='dark'] .payment-summary,
-:root[data-theme='dark'] .completion-box { background: #1b2437; border-color: #2f3a52; }
-:root[data-theme='dark'] .bar-track { background: #273149; }
-:root[data-theme='dark'] .monthly-chart { background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, #273149 40px); }
-:root[data-theme='dark'] .monthly-track { background: transparent; border-bottom-color: #3b4863; }
-:root[data-theme='dark'] .monthly-bar { background: #7387e9; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
-:root[data-theme='dark'] .monthly-column:last-child .monthly-bar { background: #9b6cf0; }
+:root[data-theme='dark'] .completion-box { background: #1a2438; border-color: #2e3b53; }
+:root[data-theme='dark'] .bar-track { background: #263149; }
+:root[data-theme='dark'] .monthly-chart { background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, #263149 40px); }
+:root[data-theme='dark'] .monthly-track { background: transparent; border-bottom-color: #3a4864; }
+:root[data-theme='dark'] .monthly-bar { background: #7088ee; box-shadow: 0 3px 8px rgba(0,0,0,.18); }
+:root[data-theme='dark'] .monthly-column:last-child .monthly-bar { background: #a06cf6; }
 :root[data-theme='dark'] .monthly-column:last-child .monthly-label { color: var(--accent); }
-:root[data-theme='dark'] .metric-card strong { color: #e9edff; }
+:root[data-theme='dark'] .metric-card strong { color: #ebefff; }
 :root[data-theme='dark'] .status-programada,
-:root[data-theme='dark'] .status-activo { color: #aebcff; background: #242d55; }
-:root[data-theme='dark'] .alert-error { color: #ffb0aa; border-color: #65373a; }
-:root[data-theme='dark'] .alert-success { color: #9ee9c9; border-color: #2f5a4d; }
-:root[data-theme='dark'] .theme-toggle:hover { border-color: #53618b; }
+:root[data-theme='dark'] .status-activo { color: #b1beff; background: #232d59; }
+:root[data-theme='dark'] .alert-error { color: #ffafa9; border-color: #67373a; }
+:root[data-theme='dark'] .alert-success { color: #9cebc8; border-color: #2d5b4d; }
+:root[data-theme='dark'] .theme-toggle:hover { border-color: #53628e; }
 
 @media (prefers-reduced-motion: reduce) {
   .nav-item.active .nav-icon svg { animation: none; }
