@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,24 @@ public class TutoresController : ControllerBase
     {
         _context = context;
         _passwordHasher = passwordHasher;
+    }
+
+    // La identidad del tutor se obtiene del JWT, no de un ID enviado por el navegador.
+    [Authorize(Roles = RolesUsuario.Tutor)]
+    [HttpGet("mi-perfil")]
+    public async Task<ActionResult> ObtenerMiPerfil()
+    {
+        var valor = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!int.TryParse(valor, out var idUsuario)) return Unauthorized();
+
+        var perfil = await _context.Tutores.AsNoTracking()
+            .Where(t => t.IdUsuario == idUsuario && t.Usuario.Activo)
+            .Select(t => new { t.IdTutor, t.Nombre, t.Apellido })
+            .FirstOrDefaultAsync();
+
+        return perfil is null
+            ? NotFound(new { mensaje = "No se encontró un perfil de tutor asociado a esta cuenta." })
+            : Ok(perfil);
     }
 
     [HttpGet]
