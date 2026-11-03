@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">SMART Tutoring Center</title>
+  <desc id="desc">Libro abierto con birrete académico</desc>
+  <g fill="none" fill-rule="evenodd">
+    <path fill="#2D4668" d="M24 42.5 64 23l40 19.5L64 62 24 42.5Z"/>
+    <path fill="#2D4668" d="M35 52.5 64 66l29-13.5v18L64 84 35 70.5v-18Z"/>
+    <path fill="#2D4668" d="M95 45h4v19h-4z"/>
+    <path fill="#2D4668" d="M97 62c3.3 0 6 2.7 6 6v9H91v-9c0-3.3 2.7-6 6-6Z"/>
+    <path fill="#3F5F8A" d="M18 82c16-7 31-6 46 5v18c-14-10-29-13-46-7V82Z"/>
+    <path fill="#4B7F88" d="M110 82c-16-7-31-6-46 5v18c14-10 29-13 46-7V82Z"/>
+    <path fill="#6F6B9D" d="M62 87h4v18h-4z" opacity=".9"/>
+  </g>
+</svg>
