@@ -1,3 +1,69 @@
+/*
+  Identidad visual de SMART Tutoring Center
+  Dirección: académica/editorial, sobria y cálida.
+  La paleta evita acentos saturados de aspecto genérico y usa tonos inspirados
+  en tinta, pizarra, resaltador y separadores de cuaderno.
+*/
+
+:root {
+  --primary: #2f466f;
+  --primary-dark: #223654;
+  --primary-soft: #edf1f6;
+  --accent: #75627f;
+  --accent-soft: #f1edf3;
+  --cyan: #3f7773;
+  --cyan-soft: #eaf3f1;
+  --surface: #ffffff;
+  --surface-alt: #f7f7f4;
+  --border: #dfe2df;
+  --text: #202833;
+  --muted: #68727d;
+  --danger: #a75b53;
+  --danger-soft: #f8eeec;
+  --success: #557862;
+  --success-soft: #edf3ef;
+  --warning: #ad7d3c;
+  --warning-soft: #f8f1e6;
+  --shadow: 0 10px 26px rgba(32, 40, 51, .07);
+}
+
+body {
+  background: #f4f5f2;
+}
+
+/* Marca y superficies */
+.brand-mark {
+  background: linear-gradient(145deg, #304a74, #6f5f78);
+}
+
+.sidebar {
+  background: linear-gradient(180deg, #172237 0%, #1d2c45 58%, #243149 100%);
+}
+
+.sidebar-brand span,
+.user-summary span {
+  color: #b7c1cf;
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, rgba(67, 92, 130, .96), rgba(105, 83, 115, .9));
+}
+
+.button-primary {
+  background: linear-gradient(135deg, #304a74, #405d88);
+}
+
+.button-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #253b5e, #304a74);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #8295ad;
+  box-shadow: 0 0 0 3px rgba(47, 70, 111, .11);
+}
+
 /* Controles de tema */
 .topbar { justify-content: space-between; gap: 16px; }
 .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; }
@@ -10,56 +76,144 @@
   place-items: center;
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 4px 12px rgba(15,23,42,.05);
+  box-shadow: 0 3px 10px rgba(32,40,51,.05);
   transition: transform .15s ease, background .15s ease, border-color .15s ease;
 }
-.theme-toggle:hover { transform: translateY(-1px); background: var(--primary-soft); border-color: #b9c5ee; }
+.theme-toggle:hover {
+  transform: translateY(-1px);
+  background: var(--primary-soft);
+  border-color: #b8c1cb;
+}
 .theme-toggle svg { width: 18px; height: 18px; }
 .login-panel { position: relative; }
 .login-theme-toggle { position: absolute; top: 18px; right: 18px; }
-.topbar-badge { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--muted); border-radius: 999px; padding: 8px 12px; font-size: .78rem; font-weight: 750; }
-.topbar-badge-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 0 4px var(--success-soft); }
+.topbar-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: .78rem;
+  font-weight: 750;
+}
+.topbar-badge-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 0 4px var(--success-soft);
+}
 .user-avatar { display: none; }
 
-/* Acentos KPI visibles pero discretos */
+/*
+  KPI: pestaña diagonal inspirada en separadores de cuaderno.
+  Reemplaza la burbuja circular decorativa.
+*/
 .metric-card::after {
-  right: -10px;
-  bottom: -18px;
-  width: 96px;
-  height: 96px;
-  opacity: .11;
+  content: '';
+  position: absolute;
+  right: -9px;
+  bottom: 16px;
+  width: 76px;
+  height: 25px;
+  border-radius: 5px 0 0 5px;
+  clip-path: polygon(14% 0, 100% 0, 100% 100%, 0 100%);
+  background: currentColor;
+  opacity: .105;
+  transform: rotate(-7deg);
+  transform-origin: right center;
+  pointer-events: none;
 }
 
-/* Tema oscuro */
+.metric-card-blue { color: var(--primary); }
+.metric-card-cyan { color: var(--cyan); }
+.metric-card-purple { color: var(--accent); }
+.metric-card-green { color: var(--success); }
+.metric-card-amber { color: var(--warning); }
+.metric-card-red { color: var(--danger); }
+
+.metric-card-blue .metric-icon { color: var(--primary); background: var(--primary-soft); }
+.metric-card-cyan .metric-icon { color: var(--cyan); background: var(--cyan-soft); }
+.metric-card-purple .metric-icon { color: var(--accent); background: var(--accent-soft); }
+.metric-card-green .metric-icon { color: var(--success); background: var(--success-soft); }
+.metric-card-amber .metric-icon { color: var(--warning); background: var(--warning-soft); }
+.metric-card-red .metric-icon { color: var(--danger); background: var(--danger-soft); }
+
+/* Gráfico mensual: columnas más finas y rejilla editorial */
+.monthly-chart {
+  gap: 18px;
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0,
+    transparent 39px,
+    rgba(98, 109, 119, .12) 40px
+  );
+}
+
+.monthly-track {
+  background: transparent;
+  border-bottom: 1px solid #cfd4d1;
+  border-radius: 0;
+  overflow: visible;
+}
+
+.monthly-bar {
+  left: 34%;
+  right: 34%;
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(180deg, #607899 0%, #344e73 100%);
+  box-shadow: 0 4px 10px rgba(47,70,111,.12);
+}
+
+.monthly-column:hover .monthly-bar {
+  transform: scaleX(1.12);
+  filter: brightness(1.04);
+  box-shadow: 0 6px 13px rgba(47,70,111,.18);
+}
+
+.monthly-column:last-child .monthly-bar {
+  background: linear-gradient(180deg, #8b7893 0%, #6f5b79 100%);
+  box-shadow: 0 4px 10px rgba(111,91,121,.16);
+}
+
+.monthly-column:last-child .monthly-label {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+/* Tema oscuro: misma identidad, no una paleta distinta */
 :root[data-theme='dark'] {
-  --primary: #91a3ff;
-  --primary-dark: #cbd3ff;
-  --primary-soft: #242d55;
-  --accent: #bd91ff;
-  --accent-soft: #35254d;
-  --cyan: #66d2e8;
-  --cyan-soft: #173845;
-  --surface: #161d2f;
-  --surface-alt: #1b2438;
-  --border: #2d3851;
-  --text: #edf2ff;
-  --muted: #a7b1c4;
-  --danger: #ff8b85;
-  --danger-soft: #402426;
-  --success: #64d6aa;
-  --success-soft: #17372e;
-  --warning: #f0bd66;
-  --warning-soft: #3d3020;
-  --shadow: 0 12px 30px rgba(0, 0, 0, .25);
+  --primary: #9aacc6;
+  --primary-dark: #d6dfeb;
+  --primary-soft: #273347;
+  --accent: #b9a7bf;
+  --accent-soft: #352d39;
+  --cyan: #86aaa6;
+  --cyan-soft: #243936;
+  --surface: #18202a;
+  --surface-alt: #1d2630;
+  --border: #303b46;
+  --text: #edf0f2;
+  --muted: #aab2ba;
+  --danger: #d8938c;
+  --danger-soft: #3a2928;
+  --success: #91b09c;
+  --success-soft: #27372e;
+  --warning: #d3ae78;
+  --warning-soft: #3b3226;
+  --shadow: 0 12px 30px rgba(0, 0, 0, .24);
 }
 
 :root[data-theme='dark'] body {
-  background: #0f1524;
+  background: #111820;
   color: var(--text);
 }
 
 :root[data-theme='dark'] .login-page {
-  background: linear-gradient(145deg, #101728 0%, #121a2b 52%, #241a35 100%);
+  background: linear-gradient(145deg, #111922 0%, #151e28 54%, #211c24 100%);
 }
 
 :root[data-theme='dark'] .login-panel,
@@ -72,11 +226,11 @@
 }
 
 :root[data-theme='dark'] .sidebar {
-  background: linear-gradient(180deg, #11182a 0%, #171f37 50%, #1c2136 100%);
+  background: linear-gradient(180deg, #101820 0%, #172230 58%, #1e2834 100%);
 }
 
 :root[data-theme='dark'] .topbar {
-  background: rgba(18, 25, 42, .94);
+  background: rgba(20, 28, 37, .95);
   border-bottom-color: var(--border);
 }
 
@@ -92,66 +246,88 @@
 :root[data-theme='dark'] input,
 :root[data-theme='dark'] select,
 :root[data-theme='dark'] textarea {
-  background: #111827;
+  background: #121a23;
   color: var(--text);
-  border-color: #35415c;
+  border-color: #394652;
 }
 
 :root[data-theme='dark'] input::placeholder,
-:root[data-theme='dark'] textarea::placeholder { color: #748198; }
+:root[data-theme='dark'] textarea::placeholder { color: #7f8993; }
 
 :root[data-theme='dark'] input:focus,
 :root[data-theme='dark'] select:focus,
 :root[data-theme='dark'] textarea:focus {
-  border-color: #7f91e8;
-  box-shadow: 0 0 0 3px rgba(145,163,255,.16);
+  border-color: #7d90a8;
+  box-shadow: 0 0 0 3px rgba(154,172,198,.14);
 }
 
 :root[data-theme='dark'] .button-secondary {
-  background: #252f44;
-  color: #e5eaf5;
+  background: #26313c;
+  color: #e7ebef;
 }
-:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303b52; }
+:root[data-theme='dark'] .button-secondary:hover:not(:disabled) { background: #303d49; }
 
 :root[data-theme='dark'] th {
-  background: #1d2639;
-  color: #b7c1d3;
+  background: #202a34;
+  color: #bdc5cc;
 }
 
 :root[data-theme='dark'] th,
-:root[data-theme='dark'] td { border-bottom-color: #2a344a; }
+:root[data-theme='dark'] td { border-bottom-color: #2e3944; }
 
-:root[data-theme='dark'] tbody tr:hover { background: #1b2437; }
+:root[data-theme='dark'] tbody tr:hover { background: #1d2731; }
 
 :root[data-theme='dark'] .payment-summary,
 :root[data-theme='dark'] .completion-box {
-  background: #1b2437;
-  border-color: #2f3a52;
+  background: #1e2832;
+  border-color: #34404b;
 }
 
-:root[data-theme='dark'] .bar-track { background: #273149; }
+:root[data-theme='dark'] .bar-track { background: #2a3540; }
 
 :root[data-theme='dark'] .monthly-chart {
-  background-image: repeating-linear-gradient(to top, transparent 0, transparent 39px, #273149 40px);
+  background-image: repeating-linear-gradient(
+    to top,
+    transparent 0,
+    transparent 39px,
+    rgba(180, 190, 200, .10) 40px
+  );
 }
 
 :root[data-theme='dark'] .monthly-track {
-  background: linear-gradient(to top, rgba(36,45,85,.72), rgba(22,29,47,.22));
-  border-bottom-color: #3b4863;
+  background: transparent;
+  border-bottom-color: #46525d;
 }
 
-:root[data-theme='dark'] .metric-card strong { color: #e9edff; }
+:root[data-theme='dark'] .monthly-bar {
+  background: linear-gradient(180deg, #8499b6 0%, #5e7595 100%);
+  box-shadow: 0 4px 10px rgba(0,0,0,.18);
+}
+
+:root[data-theme='dark'] .monthly-column:last-child .monthly-bar {
+  background: linear-gradient(180deg, #b29db8 0%, #8e7698 100%);
+}
+
+:root[data-theme='dark'] .metric-card strong { color: #eef1f3; }
 
 :root[data-theme='dark'] .status-programada,
-:root[data-theme='dark'] .status-activo { color: #aebcff; background: #242d55; }
+:root[data-theme='dark'] .status-activo { color: #c2cee0; background: #263347; }
 
-:root[data-theme='dark'] .alert-error { color: #ffb0aa; border-color: #65373a; }
-:root[data-theme='dark'] .alert-success { color: #9ee9c9; border-color: #2f5a4d; }
+:root[data-theme='dark'] .alert-error { color: #efb1ac; border-color: #63413f; }
+:root[data-theme='dark'] .alert-success { color: #b5d5bf; border-color: #405b49; }
 
-:root[data-theme='dark'] .theme-toggle:hover { border-color: #53618b; }
+:root[data-theme='dark'] .theme-toggle:hover { border-color: #5a6875; }
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-item.active .nav-icon svg { animation: none; }
+  .nav-item:hover .nav-icon svg { transform: none; }
+  .monthly-bar,
+  .monthly-value { transition: none; }
+}
 
 @media (max-width: 520px) {
   .topbar-actions { gap: 7px; }
   .topbar-badge { display: none; }
   .theme-toggle { width: 36px; height: 36px; }
+  .monthly-chart { gap: 12px; }
 }
