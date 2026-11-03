@@ -26,6 +26,12 @@ export default function PagosSection({ onUnauthorized }) {
   const [form, setForm] = useState(() => createEmptyForm())
   const [selectedStudent, setSelectedStudent] = useState('')
   const [pagos, setPagos] = useState([])
+  const [pendientes, setPendientes] = useState([])
+  const [pendingTotal, setPendingTotal] = useState(0)
+  const [pendingPage, setPendingPage] = useState(1)
+  const [pendingSearch, setPendingSearch] = useState('')
+  const [pendingRevision, setPendingRevision] = useState(0)
+  const [pendingLoading, setPendingLoading] = useState(false)
   const [lastReceipt, setLastReceipt] = useState(null)
   const [loadingHistory, setLoadingHistory] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -37,6 +43,22 @@ export default function PagosSection({ onUnauthorized }) {
     setEstudiantes(studentList); setSesiones(sessionList); setTarifa(rate); setTodosPagos(paymentList)
   }
   useEffect(() => { loadBaseData().catch((err) => setError(resolveErrorMessage(err, onUnauthorized))) }, [])
+
+  useEffect(() => { setPendingPage(1) }, [pendingSearch])
+
+  useEffect(() => {
+    let active = true
+    setPendingLoading(true)
+    api.pagos.pendientes(pendingPage, 20, pendingSearch)
+      .then((data) => {
+        if (!active) return
+        setPendientes(data.items)
+        setPendingTotal(data.total)
+      })
+      .catch((err) => { if (active) setError(resolveErrorMessage(err, onUnauthorized)) })
+      .finally(() => { if (active) setPendingLoading(false) })
+    return () => { active = false }
+  }, [pendingPage, pendingSearch, pendingRevision])
 
   const centerNow = getCenterDateTime()
   const paidSessionIds = useMemo(() => new Set(todosPagos.filter((item) => item.idSesion).map((item) => item.idSesion)), [todosPagos])
@@ -65,6 +87,7 @@ export default function PagosSection({ onUnauthorized }) {
       setLastReceipt(payment); setSuccess(`Pago registrado correctamente por ${money.format(Number(payment.monto))}.`)
       const id = form.idEstudiante; setForm({ ...createEmptyForm(), idEstudiante: id }); setSelectedStudent(id)
       await Promise.all([loadBaseData(), loadHistory(id)])
+      setPendingRevision((value) => value + 1)
     } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
     finally { setSaving(false) }
   }
@@ -82,6 +105,29 @@ export default function PagosSection({ onUnauthorized }) {
     <div className="section-stack">
       <div className="section-heading"><div><h2>Pagos</h2><p className="muted">Registro de pagos vinculados a tutorías reales y emisión de comprobantes administrativos.</p></div></div>
       {tarifa && <div className="panel note-panel"><strong>Tarifa vigente:</strong>{' '}{usd.format(Number(tarifa.tarifaUsdPorHora))} por hora × C${Number(tarifa.tipoCambioCordobasPorUsd).toFixed(4)} = <strong>{money.format(Number(tarifa.tarifaCordobasPorHora))} por hora</strong>.</div>}
+      <div className="panel">
+        <div className="section-heading">
+          <div><h3>Sesiones pendientes de cobro</h3><p className="muted">Solo tutorías finalizadas, no canceladas y sin pago registrado.</p></div>
+          <strong>{pendingTotal} pendiente{pendingTotal === 1 ? '' : 's'}</strong>
+        </div>
+        <div className="catalog-filter" style={{ paddingLeft: 0, paddingRight: 0 }}>
+          <input type="search" aria-label="Buscar sesiones pendientes" placeholder="Buscar estudiante, carnet o materia" value={pendingSearch} onChange={(event) => setPendingSearch(event.target.value)} />
+        </div>
+        {pendingLoading ? <p className="muted">Cargando pendientes…</p> : pendientes.length === 0 ? <p className="muted">No se encontraron sesiones pendientes de cobro.</p> : (
+          <div className="table-wrap"><table><thead><tr><th>Estudiante</th><th>Materia</th><th>Fecha</th><th>Horario</th><th>Acción</th></tr></thead><tbody>
+            {pendientes.map((item) => <tr key={item.idSesion}>
+              <td>{item.nombreEstudiante}<small className="muted" style={{ display: 'block' }}>{item.carnet}</small></td>
+              <td>{item.nombreMateria}</td><td>{formatDate(item.fecha)}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td>
+              <td><button type="button" className="button button-small button-secondary" onClick={() => setForm((current) => ({ ...current, idEstudiante: String(item.idEstudiante), idSesion: String(item.idSesion) }))}>Preparar cobro</button></td>
+            </tr>)}
+          </tbody></table></div>
+        )}
+        {pendingTotal > 20 && <div className="form-actions" style={{ marginTop: 12 }}>
+          <span className="muted">Página {pendingPage} de {Math.ceil(pendingTotal / 20)}</span>
+          <button type="button" className="button button-secondary" disabled={pendingPage === 1 || pendingLoading} onClick={() => setPendingPage((value) => value - 1)}>Anterior</button>
+          <button type="button" className="button button-secondary" disabled={pendingPage * 20 >= pendingTotal || pendingLoading} onClick={() => setPendingPage((value) => value + 1)}>Siguiente</button>
+        </div>}
+      </div>
       <form className="panel form-grid" onSubmit={handleSubmit}>
         <SearchableSelect label="Estudiante" value={form.idEstudiante} onChange={(value) => setForm((current) => ({ ...current, idEstudiante: value, idSesion: '' }))} options={estudiantes} getValue={(item) => item.idEstudiante} getLabel={(item) => `${item.nombre} ${item.apellido} — ${item.carnet}`} required />
         <div>
