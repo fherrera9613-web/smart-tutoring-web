@@ -65,10 +65,10 @@ export default function PagosSection({ onUnauthorized }) {
 
   const centerNow = getCenterDateTime()
   const paidSessionIds = useMemo(() => new Set(todosPagos.filter((item) => item.idSesion).map((item) => item.idSesion)), [todosPagos])
-  const availableSessions = useMemo(() => !form.idEstudiante ? [] : sesiones.filter((item) => String(item.idEstudiante) === form.idEstudiante && item.estado !== 'Cancelada' && !paidSessionIds.has(item.idSesion) && hasSessionEnded(item, centerNow)), [sesiones, form.idEstudiante, paidSessionIds, centerNow.date, centerNow.time])
+  const availableSessions = useMemo(() => !form.idEstudiante ? [] : sesiones.filter((item) => String(item.idEstudiante) === form.idEstudiante && item.estado === 'Completada' && !paidSessionIds.has(item.idSesion) && hasSessionEnded(item, centerNow)), [sesiones, form.idEstudiante, paidSessionIds, centerNow.date, centerNow.time])
   const selectedSession = useMemo(() => availableSessions.find((item) => String(item.idSesion) === form.idSesion) || null, [availableSessions, form.idSesion])
   const minutos = sessionMinutes(selectedSession)
-  const montoCalculado = useMemo(() => !tarifa || minutos <= 0 ? 0 : Math.round((minutos / 60) * Number(tarifa.tarifaCordobasPorHora) * 100) / 100, [minutos, tarifa])
+  const montoCalculado = useMemo(() => !tarifa || minutos <= 0 ? 0 : Math.round((selectedSession?.tarifaUsdPorSesion == null ? (minutos / 60) * Number(tarifa.tarifaUsdPorHora) : Number(selectedSession.tarifaUsdPorSesion)) * Number(tarifa.tipoCambioCordobasPorUsd) * 100) / 100, [minutos, tarifa, selectedSession])
   const total = useMemo(() => pagos.reduce((sum, item) => sum + Number(item.monto || 0), 0), [pagos])
 
   function updateField(event) { const { name, value } = event.target; setForm((current) => ({ ...current, [name]: value, ...(name === 'idEstudiante' ? { idSesion: '' } : {}) })) }
@@ -83,7 +83,7 @@ export default function PagosSection({ onUnauthorized }) {
 
   async function handleSubmit(event) {
     event.preventDefault(); setError(''); setSuccess('')
-    if (!selectedSession) { setError('Seleccione una sesión finalizada y pendiente de pago.'); return }
+    if (!selectedSession) { setError('Seleccione una sesión completada y pendiente de pago.'); return }
     setSaving(true)
     try {
       const payment = await api.pagos.crear({ idSesion: Number(form.idSesion), fechaPago: form.fechaPago, metodoPago: form.metodoPago, observaciones: form.observaciones || null })
@@ -125,10 +125,10 @@ export default function PagosSection({ onUnauthorized }) {
   return (
     <div className="section-stack">
       <div className="section-heading"><div><h2>Pagos</h2><p className="muted">Registro de pagos vinculados a tutorías reales y emisión de comprobantes administrativos.</p></div></div>
-      {tarifa && <div className="panel note-panel"><strong>Tarifa vigente:</strong>{' '}{usd.format(Number(tarifa.tarifaUsdPorHora))} por hora × C${Number(tarifa.tipoCambioCordobasPorUsd).toFixed(4)} = <strong>{money.format(Number(tarifa.tarifaCordobasPorHora))} por hora</strong>.</div>}
+      {tarifa && <div className="panel note-panel"><strong>Tarifa horaria base (si la sesión no tiene precio acordado):</strong>{' '}{usd.format(Number(tarifa.tarifaUsdPorHora))} por hora × C${Number(tarifa.tipoCambioCordobasPorUsd).toFixed(4)} = <strong>{money.format(Number(tarifa.tarifaCordobasPorHora))} por hora</strong>.</div>}
       <div className="panel">
         <div className="section-heading">
-          <div><h3>Sesiones pendientes de cobro</h3><p className="muted">Solo tutorías finalizadas, no canceladas y sin pago registrado.</p></div>
+          <div><h3>Sesiones pendientes de cobro</h3><p className="muted">Solo tutorías completadas, con asistencia presente y sin pago registrado.</p></div>
           <strong>{pendingTotal} pendiente{pendingTotal === 1 ? '' : 's'}</strong>
         </div>
         <div className="catalog-filter" style={{ paddingLeft: 0, paddingRight: 0 }}>
@@ -152,8 +152,8 @@ export default function PagosSection({ onUnauthorized }) {
       <form className="panel form-grid" onSubmit={handleSubmit}>
         <SearchableSelect label="Estudiante" value={form.idEstudiante} onChange={(value) => setForm((current) => ({ ...current, idEstudiante: value, idSesion: '' }))} options={estudiantes} getValue={(item) => item.idEstudiante} getLabel={(item) => `${item.nombre} ${item.apellido} — ${item.carnet}`} required />
         <div>
-          <SearchableSelect label="Sesión / materia a pagar" value={form.idSesion} onChange={(value) => setForm((current) => ({ ...current, idSesion: value }))} options={availableSessions} getValue={(item) => item.idSesion} getLabel={(item) => `${item.nombreMateria} — ${formatDate(item.fecha)} — ${item.horaInicio?.slice(0, 5)}–${item.horaFin?.slice(0, 5)} — ${item.nombreTutor}`} disabled={!form.idEstudiante} placeholder={form.idEstudiante ? 'Buscar sesión finalizada' : 'Seleccione primero un estudiante'} required />
-          {form.idEstudiante && availableSessions.length === 0 && <small className="muted">No hay sesiones finalizadas pendientes de pago para este estudiante.</small>}
+          <SearchableSelect label="Sesión / materia a pagar" value={form.idSesion} onChange={(value) => setForm((current) => ({ ...current, idSesion: value }))} options={availableSessions} getValue={(item) => item.idSesion} getLabel={(item) => `${item.nombreMateria} — ${formatDate(item.fecha)} — ${item.horaInicio?.slice(0, 5)}–${item.horaFin?.slice(0, 5)} — ${item.nombreTutor}`} disabled={!form.idEstudiante} placeholder={form.idEstudiante ? 'Buscar sesión completada' : 'Seleccione primero un estudiante'} required />
+          {form.idEstudiante && availableSessions.length === 0 && <small className="muted">No hay sesiones completadas pendientes de pago para este estudiante.</small>}
         </div>
         <label>Duración<input value={minutos ? `${minutos} minutos` : 'Seleccione una tutoría'} readOnly /></label>
         <label>Monto calculado<input value={money.format(montoCalculado)} readOnly /></label>
