@@ -149,6 +149,28 @@ namespace SmartTutoring.Api.Migrations
                     b.ToTable("Materias");
                 });
 
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.LiquidacionTutor", b =>
+                {
+                    b.Property<int>("IdLiquidacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("IdLiquidacion"));
+                    b.Property<int>("IdSesion").HasColumnType("integer");
+                    b.Property<decimal>("MontoNio").HasPrecision(12, 2).HasColumnType("numeric(12,2)");
+                    b.Property<string>("Estado").IsRequired().HasMaxLength(25).HasColumnType("character varying(25)");
+                    b.Property<DateOnly>("FechaRegistro").HasColumnType("date");
+                    b.Property<DateOnly?>("FechaAprobacion").HasColumnType("date");
+                    b.Property<DateOnly?>("FechaPago").HasColumnType("date");
+                    b.Property<string>("Observaciones").HasMaxLength(500).HasColumnType("character varying(500)");
+                    b.HasKey("IdLiquidacion");
+                    b.HasIndex("IdSesion").IsUnique();
+                    b.ToTable("LiquidacionesTutor", t =>
+                        {
+                            t.HasCheckConstraint("CK_LiquidacionesTutor_Monto", "\"MontoNio\" > 0");
+                            t.HasCheckConstraint("CK_LiquidacionesTutor_Estado", "\"Estado\" IN ('Pendiente','Aprobada','Pagada')");
+                        });
+                });
+
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
                 {
                     b.Property<int>("IdPago")
@@ -392,6 +414,16 @@ namespace SmartTutoring.Api.Migrations
                     b.HasOne("SmartTutoring.Api.Models.Entities.Tutor", "Tutor")
                         .WithMany().HasForeignKey("IdTutor").OnDelete(DeleteBehavior.Cascade).IsRequired();
                     b.Navigation("Tutor");
+                });
+
+            modelBuilder.Entity("SmartTutoring.Api.Models.Entities.LiquidacionTutor", b =>
+                {
+                    b.HasOne("SmartTutoring.Api.Models.Entities.SesionTutoria", "Sesion")
+                        .WithOne()
+                        .HasForeignKey("SmartTutoring.Api.Models.Entities.LiquidacionTutor", "IdSesion")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                    b.Navigation("Sesion");
                 });
 
             modelBuilder.Entity("SmartTutoring.Api.Models.Entities.Pago", b =>
