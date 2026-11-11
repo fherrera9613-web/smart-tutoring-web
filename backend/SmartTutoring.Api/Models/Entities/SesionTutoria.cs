@@ -29,6 +29,9 @@ public class SesionTutoria
     [MaxLength(20)]
     public string Estado { get; set; } = EstadosSesion.Programada;
 
+    // Precio acordado por sesión en USD; null conserva la tarifa horaria académica heredada.
+    public decimal? TarifaUsdPorSesion { get; set; }
+
     public Estudiante Estudiante { get; set; } = null!;
     public Tutor Tutor { get; set; } = null!;
     public Materia Materia { get; set; } = null!;
