@@ -81,3 +81,21 @@ No se han inventado reglas de facturación o disponibilidad para sustituir decis
 - No existe todavía auditoría persistente de operaciones administrativas ni recuperación autoservicio de contraseñas.
 - La automatización prueba una base nueva, no realiza pruebas de carga, de seguridad especializadas ni restauraciones de respaldos.
 - Las capturas reales de la versión desplegada y la aceptación formal de los responsables del centro deben agregarse al informe académico cuando estén disponibles.
+
+## Pruebas añadidas para compatibilidad con PETI
+
+- Crear sesión sin `tarifaUsdPorSesion`: conservar tarifa académica por hora (US$10/h).
+- Crear sesión con `tarifaUsdPorSesion = 20`, `25` y `30`: al registrar el pago, usar el precio fijo de la sesión multiplicado por la tasa configurada en el proyecto; no prorratear por duración.
+- Verificar base de datos migrada y columna decimal `TarifaUsdPorSesion`; la falta de valor conserva compatibilidad.
+- Sesión finalizada por horario pero no completada: no debe aparecer como pendiente ni aceptar cobro.
+- Sesión completada con asistencia `Ausente`: no cobrar automáticamente.
+- Sesión completada con asistencia `Presente`: permitir cobro administrativo único.
+- Crear liquidación de tutor para sesión completada/presente, con importe acordado: estado `Pendiente`.
+- La cuenta administrativa sin rol Administrador **no** puede aprobar ni marcar pagada.
+- Administrador aprueba: `Aprobada`, con fecha.
+- Administrador marca pagada con fecha válida: `Pagada`, sin transferencia electrónica.
+- Doble liquidación de la misma sesión: conflicto; monto cero o negativo: solicitud inválida.
+- Intento de pagar sin aprobación, registrar pago posterior a hoy o anterior a la aprobación: rechazo.
+- Confirmar que los controles originales de horarios, usuarios y pagos siguen funcionando (regresión).
+
+La ejecución, las capturas y los resultados observados son **pendientes de verificación**, no se consideran aprobados por el hecho de estar descritos aquí. La prueba de restauración de PostgreSQL sigue siendo necesaria para cualquier puesta en producción.
