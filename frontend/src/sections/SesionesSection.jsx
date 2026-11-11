@@ -4,7 +4,7 @@ import SearchableSelect from '../components/SearchableSelect.jsx'
 import { getLocalIsoDate } from '../utils/date.js'
 import { resolveErrorMessage } from '../utils/errors.js'
 
-const EMPTY_FORM = { idEstudiante: '', idTutor: '', idMateria: '', fecha: '', horaInicio: '', horaFin: '' }
+const EMPTY_FORM = { idEstudiante: '', idTutor: '', idMateria: '', fecha: '', horaInicio: '', horaFin: '', tarifaUsdPorSesion: '' }
 
 export default function SesionesSection({ onUnauthorized }) {
   const [sesiones, setSesiones] = useState([])
@@ -88,7 +88,7 @@ export default function SesionesSection({ onUnauthorized }) {
   }
   function startReprogram(item) {
     setEditingId(item.idSesion)
-    setForm({ idEstudiante: String(item.idEstudiante), idTutor: String(item.idTutor), idMateria: String(item.idMateria), fecha: item.fecha || '', horaInicio: (item.horaInicio || '').slice(0, 5), horaFin: (item.horaFin || '').slice(0, 5) })
+    setForm({ idEstudiante: String(item.idEstudiante), idTutor: String(item.idTutor), idMateria: String(item.idMateria), fecha: item.fecha || '', horaInicio: (item.horaInicio || '').slice(0, 5), horaFin: (item.horaFin || '').slice(0, 5), tarifaUsdPorSesion: item.tarifaUsdPorSesion ?? '' })
     setError(''); setSuccess('')
   }
   function resetForm() { setEditingId(null); setForm(EMPTY_FORM) }
@@ -102,7 +102,7 @@ export default function SesionesSection({ onUnauthorized }) {
     const schedule = { fecha: form.fecha, horaInicio: form.horaInicio.length === 5 ? `${form.horaInicio}:00` : form.horaInicio, horaFin: form.horaFin.length === 5 ? `${form.horaFin}:00` : form.horaFin }
     try {
       if (editingId) { await api.sesiones.reprogramar(editingId, schedule); setSuccess('Sesión reprogramada correctamente.') }
-      else { await api.sesiones.crear({ idEstudiante: Number(form.idEstudiante), idTutor: Number(form.idTutor), idMateria: Number(form.idMateria), ...schedule }); setSuccess('Sesión programada correctamente.') }
+      else { await api.sesiones.crear({ idEstudiante: Number(form.idEstudiante), idTutor: Number(form.idTutor), idMateria: Number(form.idMateria), tarifaUsdPorSesion: form.tarifaUsdPorSesion === '' ? null : Number(form.tarifaUsdPorSesion), ...schedule }); setSuccess('Sesión programada correctamente.') }
       resetForm(); await load(); setAgendaRevision((value) => value + 1)
     } catch (err) { setError(resolveErrorMessage(err, onUnauthorized)) }
     finally { setSaving(false) }
@@ -125,6 +125,7 @@ export default function SesionesSection({ onUnauthorized }) {
         <label>Fecha<input type="date" name="fecha" value={form.fecha} onChange={updateField} required min={getLocalIsoDate()} /></label>
         <label>Hora de inicio<input type="time" name="horaInicio" value={form.horaInicio} onChange={updateField} required step="900" /></label>
         <label>Hora de finalización<input type="time" name="horaFin" value={form.horaFin} onChange={updateField} required step="900" /></label>
+        {!editingId && <label>Tarifa acordada por sesión (USD, opcional)<input type="number" name="tarifaUsdPorSesion" min="0.01" max="10000" step="0.01" value={form.tarifaUsdPorSesion} onChange={updateField} placeholder="Sin definir: tarifa académica por hora" /><small className="muted">La tarifa se fija al programar. Si queda vacía, se conserva el cálculo horario vigente.</small></label>}
         <div className="form-actions span-2"><button className="button button-primary" type="submit" disabled={saving}>{saving ? 'Guardando…' : editingId ? 'Reprogramar sesión' : 'Agendar sesión'}</button>{editingId && <button className="button button-secondary" type="button" onClick={resetForm}>Cancelar edición</button>}</div>
       </form>
       {error && <div className="alert alert-error">{error}</div>}
@@ -154,7 +155,7 @@ export default function SesionesSection({ onUnauthorized }) {
         </div>}
         {filterTutor && !loading && <p className="muted" style={{ margin: '12px 0 0' }}>Sesiones que ocupan horario en esta página: <strong>{bookedSessions.length}</strong>{filterDate ? ' en la fecha seleccionada' : ' en todas las fechas'}.</p>}
       </div>
-      <div className="panel table-panel">{loading || agendaLoading ? <p className="table-empty">Cargando sesiones…</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{sesiones.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}
+      <div className="panel table-panel">{loading || agendaLoading ? <p className="table-empty">Cargando sesiones…</p> : !filterTutor ? <p className="table-empty muted">Seleccione un tutor para visualizar su agenda.</p> : sesiones.length === 0 ? <p className="table-empty muted">No hay sesiones registradas para este tutor en la fecha indicada.</p> : <div className="table-wrap"><table><thead><tr><th>Fecha</th><th>Horario</th><th>Estudiante</th><th>Tutor</th><th>Materia</th><th>Tarifa USD</th><th>Estado</th><th>Acciones</th></tr></thead><tbody>{sesiones.map((item) => <tr key={item.idSesion}><td>{item.fecha}</td><td>{item.horaInicio?.slice(0, 5)}–{item.horaFin?.slice(0, 5)}</td><td>{item.nombreEstudiante}</td><td>{item.nombreTutor}</td><td>{item.nombreMateria}</td><td>{item.tarifaUsdPorSesion == null ? 'Por hora' : `${Number(item.tarifaUsdPorSesion).toFixed(2)} por sesión`}</td><td><span className={`status status-${String(item.estado).toLowerCase()}`}>{item.estado}</span></td><td className="actions-cell">{item.estado === 'Programada' ? <><button className="button button-small button-secondary" type="button" onClick={() => startReprogram(item)}>Reprogramar</button><button className="button button-small button-danger" type="button" onClick={() => cancelSession(item.idSesion)}>Cancelar</button></> : <span className="muted">Sin acciones</span>}</td></tr>)}</tbody></table></div>}
         {filterTutor && agendaTotal > 50 && <div className="form-actions catalog-filter">
           <span className="muted">Página {agendaPage} de {Math.ceil(agendaTotal / 50)} · {agendaTotal} sesiones</span>
           <button type="button" className="button button-secondary" disabled={agendaPage === 1 || agendaLoading} onClick={() => setAgendaPage((p) => p - 1)}>Anterior</button>
