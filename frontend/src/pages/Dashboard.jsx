@@ -6,6 +6,7 @@ import MateriasSection from '../sections/MateriasSection.jsx'
 import SesionesSection from '../sections/SesionesSection.jsx'
 import PagosSection from '../sections/PagosSection.jsx'
 import UsuariosSection from '../sections/UsuariosSection.jsx'
+import LiquidacionesTutoresSection from '../sections/LiquidacionesTutoresSection.jsx'
 import MisSesionesSection from '../sections/MisSesionesSection.jsx'
 import MiDisponibilidadSection from '../sections/MiDisponibilidadSection.jsx'
 import smartTutoringLogo from '../assets/smart-tutoring-logo.svg'
@@ -20,6 +21,7 @@ function Icon({ name }) {
     materias: <><path d="M4 4h12a4 4 0 0 1 4 4v12H8a4 4 0 0 1-4-4Z"/><path d="M8 4v16"/><path d="M12 8h4"/></>,
     sesiones: <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h3M8 17h5"/></>,
     pagos: <><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M3 10h18"/><path d="M7 15h3"/></>,
+    liquidaciones: <><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9h10M7 14h6"/></>,
     usuarios: <><circle cx="8" cy="8" r="4"/><path d="M2 21v-1a6 6 0 0 1 6-6"/><circle cx="17" cy="17" r="4"/><path d="M17 15v4M15 17h4"/></>,
     'mis-sesiones': <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="m8 16 2 2 4-4"/></>,
     'mi-disponibilidad': <><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18M8 15l3 3 5-6"/></>,
@@ -65,6 +67,7 @@ export default function Dashboard({ session, onLogout, theme, onToggleTheme }) {
       { id: 'materias', label: 'Materias' },
       { id: 'sesiones', label: 'Sesiones' },
       { id: 'pagos', label: 'Pagos' },
+      { id: 'liquidaciones', label: 'Pago a tutores' },
     ]
 
     if (rol === 'Administrador') {
@@ -97,6 +100,7 @@ export default function Dashboard({ session, onLogout, theme, onToggleTheme }) {
       case 'materias': return <MateriasSection {...commonProps} />
       case 'sesiones': return <SesionesSection {...commonProps} />
       case 'pagos': return <PagosSection {...commonProps} />
+      case 'liquidaciones': return <LiquidacionesTutoresSection {...commonProps} isAdministrator={rol === 'Administrador'} />
       case 'usuarios':
         return rol === 'Administrador'
           ? <UsuariosSection {...commonProps} />
