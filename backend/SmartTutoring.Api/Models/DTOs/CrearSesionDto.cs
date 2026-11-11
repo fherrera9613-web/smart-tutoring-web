@@ -21,4 +21,7 @@ public class CrearSesionDto
 
     [Required]
     public TimeOnly? HoraFin { get; set; }
+
+    [Range(typeof(decimal), "0.01", "10000")]
+    public decimal? TarifaUsdPorSesion { get; set; }
 }
