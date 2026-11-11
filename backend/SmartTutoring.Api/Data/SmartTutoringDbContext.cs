@@ -18,6 +18,7 @@ public class SmartTutoringDbContext : DbContext
     public DbSet<Asistencia> Asistencias => Set<Asistencia>();
     public DbSet<SeguimientoAcademico> SeguimientosAcademicos => Set<SeguimientoAcademico>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<LiquidacionTutor> LiquidacionesTutor => Set<LiquidacionTutor>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -90,6 +91,17 @@ public class SmartTutoringDbContext : DbContext
         modelBuilder.Entity<SeguimientoAcademico>()
             .HasOne(s => s.Sesion).WithOne()
             .HasForeignKey<SeguimientoAcademico>(s => s.IdSesion).OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<LiquidacionTutor>().Property(l => l.MontoNio).HasPrecision(12, 2);
+        modelBuilder.Entity<LiquidacionTutor>().HasIndex(l => l.IdSesion).IsUnique();
+        modelBuilder.Entity<LiquidacionTutor>()
+            .HasOne(l => l.Sesion).WithOne()
+            .HasForeignKey<LiquidacionTutor>(l => l.IdSesion).OnDelete(DeleteBehavior.Restrict);
+        modelBuilder.Entity<LiquidacionTutor>().ToTable(table =>
+        {
+            table.HasCheckConstraint("CK_LiquidacionesTutor_Monto", "\"MontoNio\" > 0");
+            table.HasCheckConstraint("CK_LiquidacionesTutor_Estado", "\"Estado\" IN ('Pendiente','Aprobada','Pagada')");
+        });
 
         modelBuilder.Entity<Pago>().Property(p => p.Monto).HasPrecision(12, 2);
         modelBuilder.Entity<Pago>()
