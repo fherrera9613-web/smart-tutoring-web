@@ -121,6 +121,7 @@ public class PagosController : ControllerBase
                 nombreEstudiante = s.Estudiante.Nombre + " " + s.Estudiante.Apellido,
                 s.Estudiante.Carnet,
                 s.Materia.NombreMateria,
+                s.TarifaUsdPorSesion,
                 nombreTutor = s.Tutor.Nombre + " " + s.Tutor.Apellido
             }).ToListAsync();
 
@@ -216,7 +217,7 @@ public class PagosController : ControllerBase
         {
             IdEstudiante = sesion.IdEstudiante,
             IdSesion = sesion.IdSesion,
-            Monto = CalcularMonto(minutos),
+            Monto = CalcularMonto(minutos, sesion.TarifaUsdPorSesion),
             FechaPago = fechaPago,
             MetodoPago = metodoPago,
             Concepto = $"Tutoría de {sesion.Materia.NombreMateria}",
@@ -275,8 +276,8 @@ public class PagosController : ControllerBase
     private static int CalcularMinutos(TimeOnly horaInicio, TimeOnly horaFin) =>
         (int)(horaFin.ToTimeSpan() - horaInicio.ToTimeSpan()).TotalMinutes;
 
-    private static decimal CalcularMonto(int minutos) =>
-        Math.Round((minutos / 60m) * TarifaCordobasPorHoraExacta, 2, MidpointRounding.AwayFromZero);
+    private static decimal CalcularMonto(int minutos, decimal? tarifaPorSesionUsd) =>
+        Math.Round((tarifaPorSesionUsd ?? (minutos / 60m) * TarifaUsdPorHora) * TipoCambioOficial2026, 2, MidpointRounding.AwayFromZero);
 
     private static DateOnly ObtenerFechaActualCentro() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(-6));
 }
