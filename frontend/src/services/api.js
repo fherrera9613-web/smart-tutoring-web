@@ -149,6 +149,12 @@ export const api = {
     crear: (data) => request('/api/pagos', { method: 'POST', body: data }),
     porEstudiante: (idEstudiante) => request(`/api/pagos/estudiante/${idEstudiante}`),
   },
+  liquidaciones: {
+    listar: () => request('/api/liquidaciones-tutores'),
+    crear: (data) => request('/api/liquidaciones-tutores', { method: 'POST', body: data }),
+    aprobar: (id) => request(`/api/liquidaciones-tutores/${id}/aprobar`, { method: 'POST' }),
+    registrarPago: (id, fechaPago) => request(`/api/liquidaciones-tutores/${id}/registrar-pago`, { method: 'POST', body: { fechaPago } }),
+  },
   usuarios: {
     listar: () => request('/api/usuarios'),
     buscar: (q = '', pagina = 1, tamanio = 25) => request(`/api/usuarios/buscar?${new URLSearchParams({ q, pagina: String(pagina), tamanio: String(tamanio) })}`),
