@@ -74,6 +74,7 @@ public class SmartTutoringDbContext : DbContext
         {
             table.HasCheckConstraint("CK_SesionesTutoria_HorarioValido", "\"HoraFin\" > \"HoraInicio\"");
             table.HasCheckConstraint("CK_SesionesTutoria_EstadoValido", "\"Estado\" IN ('Programada', 'Completada', 'Cancelada')");
+            table.HasCheckConstraint("CK_SesionesTutoria_TarifaUsdPorSesion", "\"TarifaUsdPorSesion\" IS NULL OR \"TarifaUsdPorSesion\" BETWEEN 0.01 AND 10000");
         });
 
         modelBuilder.Entity<Asistencia>().HasIndex(a => a.IdSesion).IsUnique();
