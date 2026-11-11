@@ -29,7 +29,8 @@ public class SesionesController : ControllerBase
         Fecha = s.Fecha,
         HoraInicio = s.HoraInicio,
         HoraFin = s.HoraFin,
-        Estado = s.Estado
+        Estado = s.Estado,
+        TarifaUsdPorSesion = s.TarifaUsdPorSesion
     };
 
     public SesionesController(SmartTutoringDbContext context) => _context = context;
@@ -139,7 +140,8 @@ public class SesionesController : ControllerBase
         var sesion = new SesionTutoria
         {
             IdEstudiante = dto.IdEstudiante, IdTutor = dto.IdTutor, IdMateria = dto.IdMateria,
-            Fecha = fecha, HoraInicio = horaInicio, HoraFin = horaFin, Estado = EstadosSesion.Programada
+            Fecha = fecha, HoraInicio = horaInicio, HoraFin = horaFin, Estado = EstadosSesion.Programada,
+            TarifaUsdPorSesion = dto.TarifaUsdPorSesion
         };
         _context.SesionesTutoria.Add(sesion);
         await _context.SaveChangesAsync();
