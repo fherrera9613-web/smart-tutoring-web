@@ -69,6 +69,7 @@ public class SmartTutoringDbContext : DbContext
             .HasOne(s => s.Materia).WithMany()
             .HasForeignKey(s => s.IdMateria).OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<SesionTutoria>().HasIndex(s => new { s.IdTutor, s.Fecha });
+        modelBuilder.Entity<SesionTutoria>().Property(s => s.TarifaUsdPorSesion).HasPrecision(10, 2);
         modelBuilder.Entity<SesionTutoria>().ToTable(table =>
         {
             table.HasCheckConstraint("CK_SesionesTutoria_HorarioValido", "\"HoraFin\" > \"HoraInicio\"");
