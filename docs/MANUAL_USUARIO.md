@@ -78,3 +78,15 @@ En **Usuarios**, registre cuentas administrativas, consulte el listado paginado 
 - El horario libre mostrado depende de que se hayan configurado correctamente jornadas y bloqueos.
 - Las políticas sobre cobro de ausencias justificadas/injustificadas requieren aprobación del centro; no deben deducirse de la interfaz.
 - Si aparece un error, conserve el mensaje, módulo y fecha/hora del incidente para soporte.
+
+## 9. Tarifas por sesión y pago a tutores (adecuación al PETI)
+
+Al **agendar** una sesión desde **Sesiones**, puede escribir el importe total acordado en el campo `Tarifa acordada por sesión (USD)`. Este importe es opcional. Si se omite, se mantiene el cálculo por hora del piloto académico. La tarifa acordada en la creación queda asociada a esa sesión y no cambia cuando se reprograma. La pantalla de **Pagos** muestra el importe calculado en córdobas según los datos guardados.
+
+Antes de registrar un cobro, el tutor registra asistencia `Presente`, completa el seguimiento exigido y marca la sesión como `Completada`. Las sesiones simplemente vencidas por horario o con asistencia ausente no se incluyen en la lista de cobros pendientes.
+
+En **Pago a tutores**, el personal autorizado selecciona una sesión `Completada`, introduce el **importe acordado en córdobas** y registra la solicitud. La Dirección (Administrador) debe revisar y pulsar **Aprobar**. Una vez realizado efectivamente el pago por un medio externo, registra la fecha y pulsa **Registrar pago**. Esta acción solo deja constancia administrativa y no envía dinero.
+
+No se calcula automáticamente cuánto corresponde al tutor porque el acuerdo de remuneración todavía debe ser validado. No se admiten registros duplicados para una misma sesión. Si el administrador no puede confirmar el pago, debe mantener la liquidación `Aprobada`.
+
+**Para la defensa:** usar exclusivamente datos ficticios y capturas auténticas del sistema. No utilizar credenciales personales, ni presentar la base gratuita de Render como respaldo permanente.
