@@ -317,3 +317,27 @@ La documentación académica de Fase 1 y Fase 2 contiene requisitos, casos de us
 ## Proyecto académico
 
 Proyecto desarrollado para la asignatura **Diseño de Sistemas en Internet** como parte del proceso académico de Ingeniería en Sistemas.
+
+## Adecuación al PETI de Administración Informática (noviembre de 2026)
+
+La aplicación existente se conserva como **prototipo funcional candidato a solución propia**. Su uso como alternativa definitiva frente a TutorBird está condicionado a la matriz de evaluación de alternativas, costos de producción, pruebas y aprobación. No representa una sustitución automática de la recomendación del PETI.
+
+### Tarifas por sesión
+
+En **Sesiones**, el personal autorizado puede especificar un **precio acordado por sesión en USD** (por ejemplo US$20, US$25 o US$30, si coincide con un acuerdo de servicio). El precio se almacena con la sesión, evitando cambiar el importe pactado cuando cambien reglas futuras. Si no se especifica, se mantiene el cálculo académico preexistente de US$10 por hora, con intervalos de 15 minutos y el tipo de cambio del proyecto (C$36.6243 por USD). El cálculo final y el redondeo se realizan en el backend; el usuario no envía el importe a pagar al crear un cobro. El registro sigue siendo administrativo, no fiscal.
+
+**Nuevo control de cobro:** la API solo muestra como pendientes y permite registrar pagos de sesiones con estado `Completada` y asistencia `Presente`. La política de cobros por ausencia/cancelación no está autorizada y por tanto no se automatiza. Para operaciones reales, Dirección debe determinar cualquier tratamiento excepcional y documentar el procedimiento sin eludir trazabilidad.
+
+### Liquidaciones a tutores
+
+Nuevo módulo **Pago a tutores**. Personal administrativo o administrador registra una remuneración positiva en córdobas y la sesión completada correspondiente. El administrador aprueba la liquidación y, después de haber realizado el pago por un medio externo, registra la fecha de pago. Los estados son `Pendiente → Aprobada → Pagada`. Solo se permite una liquidación por sesión. La tarifa de remuneración **no se inventa**: debe provenir de un acuerdo aprobado y se escribe manualmente; el sistema no calcula porcentajes contractuales ni transfiere dinero.
+
+Las migraciones `20261111120000_SessionPrice` y `20261111130000_TutorSettlements` actualizan PostgreSQL. Aplicarlas primero en una copia de prueba con respaldo. El arranque del backend ejecuta migraciones automáticamente según su configuración, por lo que la preparación de producción requiere un proceso de despliegue controlado.
+
+### Evidencia y validación pendientes
+
+Estas modificaciones se introdujeron como código en `main`. **Una modificación confirmada por GitHub no equivale a compilación, migración exitosa o prueba E2E.** Verificar los resultados de GitHub Actions y después realizar pruebas de extremo a extremo en una base de demostración aislada con datos ficticios, usuarios por rol, casos negativos, aceptación del cálculo monetario, aprobación y liquidación. No se han aportado capturas verificadas del despliegue en esta etapa.
+
+**Advertencia de continuidad:** la base PostgreSQL gratuita de Render expira a los 30 días, no proporciona respaldos y no es apta como almacenamiento duradero de producción. Deben presupuestarse alojamiento y base de datos de pago, respaldo externo, mantenimiento y recuperación ensayada antes de sustituir la solución SaaS en el PETI.
+
+Fuentes de alojamiento: https://render.com/docs/free y https://render.com/pricing
