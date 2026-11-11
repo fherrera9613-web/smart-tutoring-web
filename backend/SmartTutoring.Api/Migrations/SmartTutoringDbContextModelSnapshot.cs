@@ -259,6 +259,10 @@ namespace SmartTutoring.Api.Migrations
                     b.Property<int>("IdTutor")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("TarifaUsdPorSesion")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("numeric(10,2)");
+
                     b.HasKey("IdSesion");
 
                     b.HasIndex("IdEstudiante");
@@ -272,6 +276,8 @@ namespace SmartTutoring.Api.Migrations
                             t.HasCheckConstraint("CK_SesionesTutoria_EstadoValido", "\"Estado\" IN ('Programada', 'Completada', 'Cancelada')");
 
                             t.HasCheckConstraint("CK_SesionesTutoria_HorarioValido", "\"HoraFin\" > \"HoraInicio\"");
+
+                            t.HasCheckConstraint("CK_SesionesTutoria_TarifaUsdPorSesion", "\"TarifaUsdPorSesion\" IS NULL OR \"TarifaUsdPorSesion\" BETWEEN 0.01 AND 10000");
                         });
                 });
 
