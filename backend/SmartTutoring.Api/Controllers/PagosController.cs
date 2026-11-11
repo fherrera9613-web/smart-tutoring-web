@@ -129,8 +129,9 @@ public class PagosController : ControllerBase
 
     private IQueryable<SesionTutoria> SesionesPendientesQuery(DateOnly fecha, TimeOnly hora) =>
         _context.SesionesTutoria.AsNoTracking().Where(s =>
-            s.Estado != EstadosSesion.Cancelada &&
+            s.Estado == EstadosSesion.Completada &&
             (s.Fecha < fecha || (s.Fecha == fecha && s.HoraFin <= hora)) &&
+            _context.Asistencias.Any(a => a.IdSesion == s.IdSesion && a.EstadoAsistencia == EstadosAsistencia.Presente) &&
             !_context.Pagos.Any(p => p.IdSesion == s.IdSesion));
 
     // Exportación acotada por período, procesada en streaming para evitar grandes listas en memoria.
@@ -196,8 +197,10 @@ public class PagosController : ControllerBase
             .Include(s => s.Estudiante).Include(s => s.Tutor).Include(s => s.Materia)
             .FirstOrDefaultAsync(s => s.IdSesion == dto.IdSesion);
         if (sesion is null) return NotFound(new { mensaje = "Sesión no encontrada." });
-        if (sesion.Estado == EstadosSesion.Cancelada)
-            return Conflict(new { mensaje = "No se puede registrar un pago para una sesión cancelada." });
+        if (sesion.Estado != EstadosSesion.Completada ||
+            !await _context.Asistencias.AnyAsync(a => a.IdSesion == sesion.IdSesion &&
+                a.EstadoAsistencia == EstadosAsistencia.Presente))
+            return Conflict(new { mensaje = "Solo pueden cobrarse sesiones completadas con asistencia presente. Las excepciones requieren una política autorizada." });
 
         var ahoraCentro = DateTime.UtcNow.AddHours(-6);
         var fechaCentro = DateOnly.FromDateTime(ahoraCentro);
