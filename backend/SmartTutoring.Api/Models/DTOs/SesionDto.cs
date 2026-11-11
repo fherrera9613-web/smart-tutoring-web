@@ -18,4 +18,6 @@ public class SesionDto
     public TimeOnly HoraFin { get; set; }
 
     public string Estado { get; set; } = string.Empty;
+
+    public decimal? TarifaUsdPorSesion { get; set; }
 }
